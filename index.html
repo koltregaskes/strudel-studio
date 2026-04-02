@@ -5,40 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Prodigy - Everybody's in the Place (Strudel Recreation)</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@strudel/embed@latest/dist/embed.js"></script>
+    <script src="https://unpkg.com/@strudel/web@1.0.3"></script>
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <header class="app-header">
             <h1>The Prodigy - Everybody's in the Place</h1>
             <p class="subtitle">Strudel Recreation</p>
         </header>
 
-        <!-- Track Information Panel -->
         <section class="track-info card">
             <div class="card__body">
                 <div class="track-details">
                     <div class="track-meta">
                         <span class="meta-item"><strong>BPM:</strong> 131</span>
-                        <span class="meta-item"><strong>Key:</strong> C♯/D♭ major</span>
+                        <span class="meta-item"><strong>Key:</strong> C#/Db major</span>
                         <span class="meta-item"><strong>Style:</strong> Breakbeat/Hardcore</span>
                         <span class="meta-item"><strong>Year:</strong> 1991</span>
                     </div>
                     <div class="track-samples">
-                        <strong>Key Samples:</strong> Amen Break, MC Duke "Everybody is in the place"
+                        <strong>Key Samples:</strong> Amen Break, hardcore stabs, rave lead, vocal fragments
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Main Controls -->
         <section class="main-controls card">
             <div class="card__body">
                 <div class="transport-controls">
                     <button id="playStopBtn" class="btn btn--primary play-button">
-                        <span class="play-icon">▶</span>
+                        <span class="play-icon">&gt;</span>
                         <span class="play-text">Play</span>
+                    </button>
+                    <button id="recordBtn" class="btn btn--secondary record-button">
+                        <span class="record-dot"></span>
+                        <span class="record-text">Record</span>
                     </button>
                     <div class="transport-info">
                         <div class="time-display">
@@ -51,7 +52,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="global-controls">
                     <div class="control-group">
                         <label class="form-label">Master Volume</label>
@@ -67,41 +68,42 @@
             </div>
         </section>
 
-        <!-- Track Structure Timeline -->
         <section class="track-structure card">
             <div class="card__body">
-                <h3>Track Structure</h3>
-                <div class="timeline">
-                    <div class="timeline-section" data-start="0" data-end="15">
-                        <div class="section-label">Intro</div>
-                        <div class="section-time">0:00-0:15</div>
+                <div class="project-header">
+                    <div>
+                        <h3>Track Structure</h3>
+                        <p class="helper-text">This is the main Remix rescue: build your song in sections, change the order, and control how long each part lasts.</p>
                     </div>
-                    <div class="timeline-section" data-start="15" data-end="90">
-                        <div class="section-label">Main</div>
-                        <div class="section-time">0:15-1:30</div>
+                    <div class="project-actions">
+                        <button id="addSectionBtn" class="btn btn--secondary" type="button">Add Section</button>
+                        <button id="resetArrangementBtn" class="btn btn--outline" type="button">Restore Default</button>
                     </div>
-                    <div class="timeline-section" data-start="90" data-end="120">
-                        <div class="section-label">Breakdown</div>
-                        <div class="section-time">1:30-2:00</div>
+                </div>
+                <div id="arrangementTimeline" class="timeline" aria-label="Track arrangement timeline"></div>
+                <div id="arrangementEditor" class="arrangement-editor" aria-label="Track arrangement editor"></div>
+            </div>
+        </section>
+
+        <section class="scene-controls card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Scene Arranger</h3>
+                        <p id="sceneDescription" class="helper-text">Pick a section preset, then tweak it into your own version.</p>
                     </div>
-                    <div class="timeline-section" data-start="120" data-end="150">
-                        <div class="section-label">Build</div>
-                        <div class="section-time">2:00-2:30</div>
+                    <div class="scene-buttons">
+                        <button class="btn btn--secondary scene-btn" data-scene="intro">Intro</button>
+                        <button class="btn btn--secondary scene-btn" data-scene="main">Main</button>
+                        <button class="btn btn--secondary scene-btn" data-scene="breakdown">Breakdown</button>
+                        <button class="btn btn--secondary scene-btn" data-scene="build">Build</button>
+                        <button class="btn btn--secondary scene-btn" data-scene="climax">Climax</button>
+                        <button class="btn btn--secondary scene-btn" data-scene="outro">Outro</button>
                     </div>
-                    <div class="timeline-section" data-start="150" data-end="195">
-                        <div class="section-label">Climax</div>
-                        <div class="section-time">2:30-3:15</div>
-                    </div>
-                    <div class="timeline-section" data-start="195" data-end="213">
-                        <div class="section-label">Outro</div>
-                        <div class="section-time">3:15-3:33</div>
-                    </div>
-                    <div id="timelineMarker" class="timeline-marker"></div>
                 </div>
             </div>
         </section>
 
-        <!-- Track Controls Panel -->
         <section class="track-controls card">
             <div class="card__body">
                 <h3>Track Elements</h3>
@@ -124,7 +126,7 @@
                             <h4>Kick Drum</h4>
                             <button class="btn btn--sm mute-btn">Mute</button>
                         </div>
-                        <div class="track-description">TR-909 kick pattern</div>
+                        <div class="track-description">Core four-to-the-floor support pulse</div>
                         <div class="track-volume">
                             <label>Volume</label>
                             <input type="range" class="track-volume-slider" min="0" max="100" value="80" data-track="kick">
@@ -150,7 +152,7 @@
                             <h4>Stab Chords</h4>
                             <button class="btn btn--sm mute-btn">Mute</button>
                         </div>
-                        <div class="track-description">Hardcore piano stabs</div>
+                        <div class="track-description">Hardcore piano and synth stabs</div>
                         <div class="track-volume">
                             <label>Volume</label>
                             <input type="range" class="track-volume-slider" min="0" max="100" value="60" data-track="stabs">
@@ -163,7 +165,7 @@
                             <h4>Lead Elements</h4>
                             <button class="btn btn--sm mute-btn">Mute</button>
                         </div>
-                        <div class="track-description">High energy rave sounds</div>
+                        <div class="track-description">High energy rave lead layer</div>
                         <div class="track-volume">
                             <label>Volume</label>
                             <input type="range" class="track-volume-slider" min="0" max="100" value="50" data-track="lead">
@@ -176,7 +178,7 @@
                             <h4>Vocal Samples</h4>
                             <button class="btn btn--sm mute-btn">Mute</button>
                         </div>
-                        <div class="track-description">Main vocal hook elements</div>
+                        <div class="track-description">Main vocal hook fragments</div>
                         <div class="track-volume">
                             <label>Volume</label>
                             <input type="range" class="track-volume-slider" min="0" max="100" value="80" data-track="vocal">
@@ -200,7 +202,55 @@
             </div>
         </section>
 
-        <!-- Effect Controls -->
+        <section class="sampler-controls card">
+            <div class="card__body">
+                <h3>Vocal Sampler & Sequencer</h3>
+                <div class="sampler-grid">
+                    <div class="sample-upload">
+                        <label class="form-label" for="vocalSampleInput">Import vocal sample</label>
+                        <input type="file" id="vocalSampleInput" accept="audio/*">
+                        <p id="sampleStatus" class="sample-status">Using the built-in placeholder vocal texture.</p>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Trigger steps</label>
+                        <input type="text" id="vocalStepInput" class="form-control" value="8,16" placeholder="8,16">
+                        <span class="helper-text">Use beat positions 1-16, comma separated.</span>
+                    </div>
+
+                    <div class="control-group step-grid-group">
+                        <div class="step-grid-header">
+                            <label class="form-label">Step toggles</label>
+                            <div class="sampler-actions">
+                                <button id="auditionVocalBtn" class="btn btn--secondary btn--sm" type="button">Audition</button>
+                                <button id="clearVocalBtn" class="btn btn--outline btn--sm" type="button">Clear Sample</button>
+                            </div>
+                        </div>
+                        <div id="vocalStepGrid" class="step-grid" aria-label="Vocal trigger steps"></div>
+                        <span class="helper-text">Click steps to place vocal chops across the 16-step pattern.</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Sample start</label>
+                        <input type="range" id="vocalStartSlider" min="0" max="95" value="0">
+                        <span class="effect-value">0%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Sample end</label>
+                        <input type="range" id="vocalEndSlider" min="5" max="100" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Playback rate</label>
+                        <input type="range" id="vocalRateSlider" min="50" max="150" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="effect-controls card">
             <div class="card__body">
                 <h3>Global Effects</h3>
@@ -224,7 +274,6 @@
             </div>
         </section>
 
-        <!-- Visual Feedback -->
         <section class="visualizer card">
             <div class="card__body">
                 <h3>Pattern Visualizer</h3>
@@ -242,7 +291,18 @@
             </div>
         </section>
 
-        <!-- Code Editor Section -->
+        <section class="example-library card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Example Library</h3>
+                        <p class="helper-text">Another Remix rescue: load a ready-made code sketch, then shape it with the Studio controls.</p>
+                    </div>
+                </div>
+                <div id="exampleLibraryList" class="example-library-list" aria-label="Example Strudel code library"></div>
+            </div>
+        </section>
+
         <section class="code-section card">
             <div class="card__body">
                 <div class="code-header">
@@ -263,19 +323,38 @@
             </div>
         </section>
 
-        <!-- Information Panel -->
+        <section class="project-controls card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Project State</h3>
+                        <p class="helper-text">Save the current controls and code locally, or export a project file.</p>
+                    </div>
+                    <div class="project-actions">
+                        <button id="saveProjectBtn" class="btn btn--secondary">Save Project</button>
+                        <button id="exportProjectBtn" class="btn btn--secondary">Export Project</button>
+                        <button id="importProjectBtn" class="btn btn--secondary">Import Project</button>
+                        <input type="file" id="importProjectInput" accept="application/json" hidden>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="info-panel card">
             <div class="card__body">
                 <h3>About This Recreation</h3>
-                <p>This is a recreation of "The Prodigy - Everybody's in the Place" using Strudel, a live coding environment for algorithmic patterns. The track features chopped-up Amen breaks, classic hardcore stabs, and the iconic vocal sample.</p>
+                <p>
+                    This version uses Strudel's web-audio package directly, so the large Play button now evaluates the
+                    code in this page and starts sound from the same click gesture.
+                </p>
                 <div class="instructions">
                     <h4>How to Use:</h4>
                     <ul>
                         <li>Click the large Play button to start the track</li>
-                        <li>Use individual track controls to mute/unmute and adjust volumes</li>
+                        <li>Use individual track controls to mute or rebalance the generated default arrangement</li>
                         <li>Modify global tempo and effects in real-time</li>
-                        <li>Click "Show Code" to view and edit the Strudel code</li>
-                        <li>Use the timeline to see track progression</li>
+                        <li>Click "Show Code" to view or edit the Strudel code</li>
+                        <li>Use "Update" after editing code to re-evaluate it live</li>
                     </ul>
                 </div>
             </div>
