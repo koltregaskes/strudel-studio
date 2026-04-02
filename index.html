@@ -104,6 +104,57 @@
             </div>
         </section>
 
+        <section class="rhythm-designer card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Beat Designer</h3>
+                        <p class="helper-text">Build your groove with buttons instead of theory. Click steps for kick, snare, and hats, or load a preset rhythm and keep tweaking from there.</p>
+                    </div>
+                    <div class="scene-buttons">
+                        <button class="btn btn--secondary rhythm-preset-btn" data-rhythm-preset="club-drive" type="button">Club Drive</button>
+                        <button class="btn btn--secondary rhythm-preset-btn" data-rhythm-preset="break-swing" type="button">Break Swing</button>
+                        <button class="btn btn--secondary rhythm-preset-btn" data-rhythm-preset="half-time" type="button">Half-Time</button>
+                    </div>
+                </div>
+
+                <div class="rhythm-grid">
+                    <div class="rhythm-lane">
+                        <div class="rhythm-lane__header">
+                            <div>
+                                <h4>Kick Pulse</h4>
+                                <p class="helper-text">Use this for the main floor energy.</p>
+                            </div>
+                            <span id="kickStepSummary" class="rhythm-summary">1, 5, 9, 13</span>
+                        </div>
+                        <div id="kickStepGrid" class="step-grid" aria-label="Kick pattern steps"></div>
+                    </div>
+
+                    <div class="rhythm-lane">
+                        <div class="rhythm-lane__header">
+                            <div>
+                                <h4>Snare / Break Hits</h4>
+                                <p class="helper-text">Use this for crack, snap, and breakbeat punctuation.</p>
+                            </div>
+                            <span id="snareStepSummary" class="rhythm-summary">5, 13</span>
+                        </div>
+                        <div id="snareStepGrid" class="step-grid" aria-label="Snare pattern steps"></div>
+                    </div>
+
+                    <div class="rhythm-lane">
+                        <div class="rhythm-lane__header">
+                            <div>
+                                <h4>Hat Motion</h4>
+                                <p class="helper-text">Fill in pace and shuffle. Dense works well for rave energy.</p>
+                            </div>
+                            <span id="hatStepSummary" class="rhythm-summary">1-16</span>
+                        </div>
+                        <div id="hatStepGrid" class="step-grid" aria-label="Hat pattern steps"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="track-controls card">
             <div class="card__body">
                 <h3>Track Elements</h3>

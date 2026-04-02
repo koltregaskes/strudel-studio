@@ -1113,6 +1113,37 @@ body {
   gap: var(--space-20);
 }
 
+.rhythm-grid {
+  display: grid;
+  gap: var(--space-20);
+}
+
+.rhythm-lane {
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-base);
+  padding: var(--space-16);
+}
+
+.rhythm-lane__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-16);
+  margin-bottom: var(--space-12);
+}
+
+.rhythm-lane__header h4 {
+  margin-bottom: 4px;
+}
+
+.rhythm-summary {
+  min-width: 96px;
+  text-align: right;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
 .sample-upload {
   display: flex;
   flex-direction: column;
@@ -1228,6 +1259,24 @@ body {
   background: linear-gradient(135deg, rgba(255, 88, 143, 0.22), rgba(255, 187, 71, 0.24));
   border-color: color-mix(in srgb, var(--color-accent) 72%, white 28%);
   box-shadow: 0 0 0 1px rgba(255, 88, 143, 0.14), 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.step-toggle--kick.active {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.24), rgba(39, 218, 255, 0.22));
+  border-color: rgba(0, 255, 136, 0.68);
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.14), 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.step-toggle--snare.active {
+  background: linear-gradient(135deg, rgba(255, 95, 95, 0.25), rgba(255, 176, 71, 0.24));
+  border-color: rgba(255, 127, 80, 0.72);
+  box-shadow: 0 0 0 1px rgba(255, 111, 87, 0.16), 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
+.step-toggle--hat.active {
+  background: linear-gradient(135deg, rgba(76, 167, 255, 0.22), rgba(177, 136, 255, 0.24));
+  border-color: rgba(122, 159, 255, 0.72);
+  box-shadow: 0 0 0 1px rgba(122, 159, 255, 0.16), 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
 .project-header {

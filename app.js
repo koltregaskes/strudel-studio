@@ -380,21 +380,6 @@ class SimpleRaveEngine {
         this.registerNode(osc, time + 0.22);
     }
 
-    scheduleBreakGhosts(time, step) {
-        const level = this.trackLevel('mainbreak');
-        if (level <= 0) {
-            return;
-        }
-
-        if ([2, 6, 10, 14].includes(step)) {
-            this.scheduleHat(time, false);
-        }
-
-        if ([4, 12].includes(step)) {
-            this.scheduleSnare(time);
-        }
-    }
-
     scheduleStep(step, time) {
         const bassPattern = [37, null, 37, null, 42, null, 42, null, 44, null, 44, null, 49, null, 49, null];
         const leadPattern = [61, null, null, 64, null, 66, null, 68, 69, null, 68, null, 66, null, 64, null];
@@ -405,15 +390,15 @@ class SimpleRaveEngine {
             12: [68, 73, 76]
         };
 
-        if ([0, 4, 8, 12].includes(step)) {
+        if (this.app.sequenceConfig.kickSteps.includes(step + 1)) {
             this.scheduleKick(time);
         }
-        if ([4, 12].includes(step)) {
+        if (this.app.sequenceConfig.snareSteps.includes(step + 1)) {
             this.scheduleSnare(time);
         }
-
-        this.scheduleHat(time, step % 2 === 0);
-        this.scheduleBreakGhosts(time, step);
+        if (this.app.sequenceConfig.hatSteps.includes(step + 1)) {
+            this.scheduleHat(time, (step + 1) % 4 === 0);
+        }
 
         if (bassPattern[step] !== null) {
             this.scheduleBass(time, bassPattern[step]);
@@ -520,6 +505,27 @@ class ProdigyStrudelApp {
             filter: 0.5
         };
 
+        this.rhythmPresets = {
+            'club-drive': {
+                label: 'Club Drive',
+                kickSteps: [1, 5, 9, 13],
+                snareSteps: [5, 13],
+                hatSteps: [1, 3, 5, 7, 9, 11, 13, 15]
+            },
+            'break-swing': {
+                label: 'Break Swing',
+                kickSteps: [1, 4, 9, 11, 13],
+                snareSteps: [5, 8, 13, 16],
+                hatSteps: [1, 2, 4, 6, 7, 9, 10, 12, 14, 15]
+            },
+            'half-time': {
+                label: 'Half-Time',
+                kickSteps: [1, 7, 9, 15],
+                snareSteps: [9],
+                hatSteps: [1, 3, 5, 7, 9, 11, 13, 15]
+            }
+        };
+
         this.scenePresets = {
             intro: {
                 label: 'Intro',
@@ -535,7 +541,7 @@ class ProdigyStrudelApp {
                     fx: { volume: 0.3, muted: true },
                     percussion: { volume: 0.32, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [16], fxSteps: [] }
+                sequenceConfig: { kickSteps: [1, 9], snareSteps: [13], hatSteps: [1, 5, 9, 13], vocalSteps: [16], fxSteps: [] }
             },
             main: {
                 label: 'Main',
@@ -551,7 +557,7 @@ class ProdigyStrudelApp {
                     fx: { volume: 0.55, muted: false },
                     percussion: { volume: 0.5, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [8, 16], fxSteps: [4, 12] }
+                sequenceConfig: { kickSteps: [1, 5, 9, 13], snareSteps: [5, 13], hatSteps: [1, 3, 5, 7, 9, 11, 13, 15], vocalSteps: [8, 16], fxSteps: [4, 12] }
             },
             breakdown: {
                 label: 'Breakdown',
@@ -567,7 +573,7 @@ class ProdigyStrudelApp {
                     fx: { volume: 0.44, muted: false },
                     percussion: { volume: 0.26, muted: true }
                 },
-                sequenceConfig: { vocalSteps: [4, 8, 12, 16], fxSteps: [12] }
+                sequenceConfig: { kickSteps: [1, 11], snareSteps: [9], hatSteps: [1, 5, 9, 13], vocalSteps: [4, 8, 12, 16], fxSteps: [12] }
             },
             build: {
                 label: 'Build',
@@ -583,7 +589,7 @@ class ProdigyStrudelApp {
                     fx: { volume: 0.62, muted: false },
                     percussion: { volume: 0.6, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [4, 8, 12, 14, 16], fxSteps: [8, 12, 16] }
+                sequenceConfig: { kickSteps: [1, 5, 7, 9, 13, 15], snareSteps: [5, 13], hatSteps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], vocalSteps: [4, 8, 12, 14, 16], fxSteps: [8, 12, 16] }
             },
             climax: {
                 label: 'Climax',
@@ -599,7 +605,7 @@ class ProdigyStrudelApp {
                     fx: { volume: 0.74, muted: false },
                     percussion: { volume: 0.66, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [2, 4, 8, 10, 12, 16], fxSteps: [4, 8, 12, 16] }
+                sequenceConfig: { kickSteps: [1, 5, 9, 11, 13, 15], snareSteps: [5, 8, 13, 16], hatSteps: [1, 2, 4, 6, 7, 8, 9, 10, 12, 14, 15, 16], vocalSteps: [2, 4, 8, 10, 12, 16], fxSteps: [4, 8, 12, 16] }
             },
             outro: {
                 label: 'Outro',
@@ -615,7 +621,7 @@ class ProdigyStrudelApp {
                     fx: { volume: 0.22, muted: true },
                     percussion: { volume: 0.24, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [8, 16], fxSteps: [16] }
+                sequenceConfig: { kickSteps: [1, 9], snareSteps: [13], hatSteps: [1, 5, 9, 13], vocalSteps: [8, 16], fxSteps: [16] }
             }
         };
 
@@ -629,6 +635,9 @@ class ProdigyStrudelApp {
         };
 
         this.sequenceConfig = {
+            kickSteps: [1, 5, 9, 13],
+            snareSteps: [5, 13],
+            hatSteps: [1, 3, 5, 7, 9, 11, 13, 15],
             vocalSteps: [8, 16],
             fxSteps: [4, 12]
         };
@@ -789,6 +798,12 @@ arrange(
             auditionFxBtn: document.getElementById('auditionFxBtn'),
             clearFxBtn: document.getElementById('clearFxBtn'),
             fxStepGrid: document.getElementById('fxStepGrid'),
+            kickStepGrid: document.getElementById('kickStepGrid'),
+            snareStepGrid: document.getElementById('snareStepGrid'),
+            hatStepGrid: document.getElementById('hatStepGrid'),
+            kickStepSummary: document.getElementById('kickStepSummary'),
+            snareStepSummary: document.getElementById('snareStepSummary'),
+            hatStepSummary: document.getElementById('hatStepSummary'),
             saveProjectBtn: document.getElementById('saveProjectBtn'),
             exportProjectBtn: document.getElementById('exportProjectBtn'),
             importProjectBtn: document.getElementById('importProjectBtn'),
@@ -802,11 +817,13 @@ arrange(
             codeTextarea: document.getElementById('strudelCode'),
             strudelPanel: document.getElementById('strudelRepl'),
             sceneButtons: Array.from(document.querySelectorAll('.scene-btn')),
+            rhythmPresetButtons: Array.from(document.querySelectorAll('.rhythm-preset-btn')),
             exampleLibraryList: document.getElementById('exampleLibraryList')
         };
     }
 
     init() {
+        this.buildRhythmStepButtons();
         this.buildVocalStepButtons();
         this.buildFxStepButtons();
         this.renderExampleLibrary();
@@ -901,6 +918,31 @@ arrange(
         return `${minutes}:${String(remainder).padStart(2, '0')}`;
     }
 
+    buildRhythmStepButtons() {
+        const rhythmTargets = [
+            ['kick', this.dom.kickStepGrid, 'step-toggle--kick'],
+            ['snare', this.dom.snareStepGrid, 'step-toggle--snare'],
+            ['hat', this.dom.hatStepGrid, 'step-toggle--hat']
+        ];
+
+        rhythmTargets.forEach(([laneId, container, modifierClass]) => {
+            if (!container || container.children.length > 0) {
+                return;
+            }
+
+            for (let step = 1; step <= 16; step += 1) {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `step-toggle ${modifierClass}`;
+                button.dataset.step = String(step);
+                button.textContent = String(step);
+                button.setAttribute('aria-pressed', 'false');
+                button.addEventListener('click', () => this.toggleRhythmStep(laneId, step));
+                container.appendChild(button);
+            }
+        });
+    }
+
     buildVocalStepButtons() {
         if (!this.dom.vocalStepGrid || this.dom.vocalStepGrid.children.length > 0) {
             return;
@@ -941,6 +983,7 @@ arrange(
         this.dom.reverbSlider.value = Math.round(this.globalEffects.reverb * 100);
         this.dom.delaySlider.value = Math.round(this.globalEffects.delay * 100);
         this.dom.filterSlider.value = Math.round(this.globalEffects.filter * 100);
+        this.updateRhythmSummaries();
         this.dom.vocalStepInput.value = this.sequenceConfig.vocalSteps.join(',');
         this.dom.vocalStartSlider.value = Math.round(this.sampleState.vocal.start * 100);
         this.dom.vocalEndSlider.value = Math.round(this.sampleState.vocal.end * 100);
@@ -965,12 +1008,35 @@ arrange(
             }
         });
 
+        this.renderRhythmStepGrid();
         this.renderVocalStepGrid();
         this.renderFxStepGrid();
         this.renderSceneState();
         this.renderArrangementTimeline();
         this.renderArrangementEditor();
         this.refreshTimelineMetrics();
+    }
+
+    renderRhythmStepGrid() {
+        const rhythmTargets = [
+            ['kick', this.dom.kickStepGrid],
+            ['snare', this.dom.snareStepGrid],
+            ['hat', this.dom.hatStepGrid]
+        ];
+
+        rhythmTargets.forEach(([laneId, container]) => {
+            if (!container) {
+                return;
+            }
+
+            const activeSteps = new Set(this.sequenceConfig[`${laneId}Steps`] || []);
+            container.querySelectorAll('.step-toggle').forEach((button) => {
+                const step = parseInt(button.dataset.step, 10);
+                const isActive = activeSteps.has(step);
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', String(isActive));
+            });
+        });
     }
 
     renderVocalStepGrid() {
@@ -1036,6 +1102,37 @@ arrange(
                     .filter((step) => Number.isInteger(step) && step >= 1 && step <= 16)
             )
         ).sort((left, right) => left - right);
+    }
+
+    formatStepSummary(steps) {
+        if (!steps.length) {
+            return 'none';
+        }
+
+        if (steps.length === 16 && steps[0] === 1 && steps[15] === 16) {
+            return '1-16';
+        }
+
+        return steps.join(', ');
+    }
+
+    buildSamplePattern(steps, token) {
+        const hitSet = new Set(steps);
+        return Array.from({ length: 16 }, (_, index) => (hitSet.has(index + 1) ? token : '~')).join(' ');
+    }
+
+    updateRhythmSummaries() {
+        if (this.dom.kickStepSummary) {
+            this.dom.kickStepSummary.textContent = this.formatStepSummary(this.sequenceConfig.kickSteps);
+        }
+
+        if (this.dom.snareStepSummary) {
+            this.dom.snareStepSummary.textContent = this.formatStepSummary(this.sequenceConfig.snareSteps);
+        }
+
+        if (this.dom.hatStepSummary) {
+            this.dom.hatStepSummary.textContent = this.formatStepSummary(this.sequenceConfig.hatSteps);
+        }
     }
 
     updateSampleStatus() {
@@ -1337,7 +1434,13 @@ arrange(
             arrangement: this.arrangement,
             globalEffects: this.globalEffects,
             trackStates: this.trackStates,
-            sequenceConfig: this.sequenceConfig,
+            sequenceConfig: {
+                kickSteps: [...this.sequenceConfig.kickSteps],
+                snareSteps: [...this.sequenceConfig.snareSteps],
+                hatSteps: [...this.sequenceConfig.hatSteps],
+                vocalSteps: [...this.sequenceConfig.vocalSteps],
+                fxSteps: [...this.sequenceConfig.fxSteps]
+            },
             sampleSettings: {
                 vocal: {
                     fileName: this.sampleState.vocal.fileName,
@@ -1378,6 +1481,18 @@ arrange(
                 ...this.trackStates,
                 ...project.trackStates
             };
+        }
+
+        if (project.sequenceConfig?.kickSteps) {
+            this.sequenceConfig.kickSteps = this.parseVocalSteps(project.sequenceConfig.kickSteps.join(','));
+        }
+
+        if (project.sequenceConfig?.snareSteps) {
+            this.sequenceConfig.snareSteps = this.parseVocalSteps(project.sequenceConfig.snareSteps.join(','));
+        }
+
+        if (project.sequenceConfig?.hatSteps) {
+            this.sequenceConfig.hatSteps = this.parseVocalSteps(project.sequenceConfig.hatSteps.join(','));
         }
 
         if (project.sequenceConfig?.vocalSteps) {
@@ -1530,6 +1645,24 @@ arrange(
         this.renderStrudelStatus('Playing a quick FX preview from the current slice and rate settings.', 'ready');
     }
 
+    toggleRhythmStep(laneId, step) {
+        const key = `${laneId}Steps`;
+        const stepSet = new Set(this.sequenceConfig[key]);
+
+        if (stepSet.has(step)) {
+            stepSet.delete(step);
+        } else {
+            stepSet.add(step);
+        }
+
+        this.sequenceConfig[key] = Array.from(stepSet).sort((left, right) => left - right);
+        this.renderRhythmStepGrid();
+        this.updateRhythmSummaries();
+        this.markSceneCustom();
+        this.syncDefaultCodeFromControls();
+        this.persistProject();
+    }
+
     toggleVocalStep(step) {
         const stepSet = new Set(this.sequenceConfig.vocalSteps);
 
@@ -1566,6 +1699,24 @@ arrange(
         this.persistProject();
     }
 
+    applyRhythmPreset(presetId) {
+        const preset = this.rhythmPresets[presetId];
+        if (!preset) {
+            return;
+        }
+
+        this.sequenceConfig.kickSteps = [...preset.kickSteps];
+        this.sequenceConfig.snareSteps = [...preset.snareSteps];
+        this.sequenceConfig.hatSteps = [...preset.hatSteps];
+        this.renderRhythmStepGrid();
+        this.updateRhythmSummaries();
+        this.markSceneCustom();
+        this.syncDefaultCodeFromControls();
+        this.persistProject();
+        this.renderStrudelStatus(`${preset.label} rhythm loaded. Keep clicking steps to shape it into your own groove.`, 'ready');
+        this.showNotification(`${preset.label} rhythm loaded.`, 'success');
+    }
+
     applyScenePreset(sceneId) {
         const scene = this.scenePresets[sceneId];
         if (!scene) {
@@ -1584,6 +1735,18 @@ arrange(
                 ...trackState
             };
         });
+
+        if (scene.sequenceConfig?.kickSteps) {
+            this.sequenceConfig.kickSteps = [...scene.sequenceConfig.kickSteps];
+        }
+
+        if (scene.sequenceConfig?.snareSteps) {
+            this.sequenceConfig.snareSteps = [...scene.sequenceConfig.snareSteps];
+        }
+
+        if (scene.sequenceConfig?.hatSteps) {
+            this.sequenceConfig.hatSteps = [...scene.sequenceConfig.hatSteps];
+        }
 
         if (scene.sequenceConfig?.vocalSteps) {
             this.sequenceConfig.vocalSteps = [...scene.sequenceConfig.vocalSteps];
@@ -1653,6 +1816,10 @@ arrange(
 
         this.dom.sceneButtons.forEach((button) => {
             button.addEventListener('click', () => this.applyScenePreset(button.dataset.scene));
+        });
+
+        this.dom.rhythmPresetButtons.forEach((button) => {
+            button.addEventListener('click', () => this.applyRhythmPreset(button.dataset.rhythmPreset));
         });
 
         this.dom.addSectionBtn?.addEventListener('click', () => this.addArrangementSection());
@@ -1846,9 +2013,16 @@ arrange(
         const delay = this.globalEffects.delay.toFixed(2);
         const filter = (1200 + this.globalEffects.filter * 4800).toFixed(0);
         const activeScene = this.scenePresets[this.activeScene]?.label || 'Custom';
+        const kickSummary = this.formatStepSummary(this.sequenceConfig.kickSteps);
+        const snareSummary = this.formatStepSummary(this.sequenceConfig.snareSteps);
+        const hatSummary = this.formatStepSummary(this.sequenceConfig.hatSteps);
+        const kickPattern = this.buildSamplePattern(this.sequenceConfig.kickSteps, 'bd');
+        const snarePattern = this.buildSamplePattern(this.sequenceConfig.snareSteps, 'sd');
+        const hatPattern = this.buildSamplePattern(this.sequenceConfig.hatSteps, 'hh');
         const arrangementComment = this.arrangement
             .map((section, index) => `// ${index + 1}. ${section.name} - ${section.bars} bars (${this.scenePresets[section.sceneId]?.label || 'Scene'})`)
             .join('\n');
+        const rhythmComment = `// Kick steps: ${kickSummary}\n// Snare steps: ${snareSummary}\n// Hat steps: ${hatSummary}\n`;
         const vocalComment = this.sampleState.vocal.fileName
             ? `// Vocal sample loaded locally: ${this.sampleState.vocal.fileName}\n// Trigger steps: ${this.sequenceConfig.vocalSteps.join(', ')}\n`
             : `// Vocal layer currently uses the built-in placeholder texture.\n// Trigger steps: ${this.sequenceConfig.vocalSteps.join(', ')}\n`;
@@ -1860,12 +2034,14 @@ arrange(
 // Active scene: ${activeScene}
 // Arrangement:
 ${arrangementComment}
+${rhythmComment}
 ${vocalComment}
 ${fxComment}
 
 stack(
-  s("bd*4").gain(${(this.trackStates.kick.muted ? 0 : this.trackStates.kick.volume * this.globalEffects.masterVolume).toFixed(2)}),
-  s("hh*8").gain(${(this.trackStates.percussion.muted ? 0 : this.trackStates.percussion.volume * this.globalEffects.masterVolume * 0.65).toFixed(2)}),
+  s("${kickPattern}").gain(${(this.trackStates.kick.muted ? 0 : this.trackStates.kick.volume * this.globalEffects.masterVolume).toFixed(2)}),
+  s("${snarePattern}").gain(${(this.trackStates.mainbreak.muted ? 0 : this.trackStates.mainbreak.volume * this.globalEffects.masterVolume * 0.72).toFixed(2)}),
+  s("${hatPattern}").gain(${(this.trackStates.percussion.muted ? 0 : this.trackStates.percussion.volume * this.globalEffects.masterVolume * 0.65).toFixed(2)}),
   note("c2 c2 fs2 fs2 g#2 g#2 c3 c3").s("sawtooth").gain(${(this.trackStates.bass.muted ? 0 : this.trackStates.bass.volume * this.globalEffects.masterVolume * 0.4).toFixed(2)}),
   note("<[cs4,f4,gs4] ~ [cs4,f4,gs4] ~ [fs4,a4,cs5] ~ [gs4,cs5,ds5] ~>").s("square").gain(${(this.trackStates.stabs.muted ? 0 : this.trackStates.stabs.volume * this.globalEffects.masterVolume * 0.28).toFixed(2)}),
   note("cs5 ~ e5 ~ fs5 ~ gs5 ~ a5 ~ gs5 ~ fs5 ~ e5 ~").s("triangle").gain(${(this.trackStates.lead.muted ? 0 : this.trackStates.lead.volume * this.globalEffects.masterVolume * 0.24).toFixed(2)})

@@ -12,6 +12,7 @@ This repo now acts as the main lightweight path toward `Strudel Studio`, with de
 - Records the local mix and exports a take from the browser
 - Imports a vocal sample, slices it, changes playback rate, and triggers it on chosen steps
 - Adds a second FX / stab sample lane for extra hits, risers, and rave textures
+- Includes a click-to-build beat designer for kick, snare, and hat patterns
 - Adds clickable scene presets for intro, main, breakdown, build, climax, and outro moods
 - Provides two sample sequencer lanes with quick audition and clear-sample controls
 - Saves project state in the browser and exports/imports project JSON
@@ -28,5 +29,5 @@ This repo now acts as the main lightweight path toward `Strudel Studio`, with de
 
 - Local playback path works without relying on the broken Strudel embed route
 - The repo is useful as a real browser-based music sketch tool
-- It now has two sample lanes, arrangement editing, scene presets, recording, and code examples in one surface
+- It now has beat design, two sample lanes, arrangement editing, scene presets, recording, and code examples in one surface
 - It is now the clearer single path to continue under the renamed `strudel-studio` repo
