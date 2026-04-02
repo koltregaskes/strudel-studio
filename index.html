@@ -186,6 +186,19 @@
                         </div>
                     </div>
 
+                    <div class="track-control" data-track="fx">
+                        <div class="track-header">
+                            <h4>FX / Stab Sample</h4>
+                            <button class="btn btn--sm mute-btn">Mute</button>
+                        </div>
+                        <div class="track-description">Extra chop lane for rave stabs, impacts, or texture hits</div>
+                        <div class="track-volume">
+                            <label>Volume</label>
+                            <input type="range" class="track-volume-slider" min="0" max="100" value="55" data-track="fx">
+                            <span class="volume-display">55%</span>
+                        </div>
+                    </div>
+
                     <div class="track-control" data-track="percussion">
                         <div class="track-header">
                             <h4>Percussion</h4>
@@ -204,7 +217,7 @@
 
         <section class="sampler-controls card">
             <div class="card__body">
-                <h3>Vocal Sampler & Sequencer</h3>
+                <h3>Sample Lanes & Sequencers</h3>
                 <div class="sampler-grid">
                     <div class="sample-upload">
                         <label class="form-label" for="vocalSampleInput">Import vocal sample</label>
@@ -245,6 +258,48 @@
                     <div class="control-group">
                         <label class="form-label">Playback rate</label>
                         <input type="range" id="vocalRateSlider" min="50" max="150" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+
+                    <div class="sample-upload">
+                        <label class="form-label" for="fxSampleInput">Import FX or stab sample</label>
+                        <input type="file" id="fxSampleInput" accept="audio/*">
+                        <p id="fxStatus" class="sample-status">Using the built-in synth stab texture on steps 4 and 12.</p>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">FX trigger steps</label>
+                        <input type="text" id="fxStepInput" class="form-control" value="4,12" placeholder="4,12">
+                        <span class="helper-text">Good for stabs, hits, uplifters, and one-shot textures.</span>
+                    </div>
+
+                    <div class="control-group step-grid-group">
+                        <div class="step-grid-header">
+                            <label class="form-label">FX step toggles</label>
+                            <div class="sampler-actions">
+                                <button id="auditionFxBtn" class="btn btn--secondary btn--sm" type="button">Audition</button>
+                                <button id="clearFxBtn" class="btn btn--outline btn--sm" type="button">Clear Sample</button>
+                            </div>
+                        </div>
+                        <div id="fxStepGrid" class="step-grid" aria-label="FX trigger steps"></div>
+                        <span class="helper-text">Layer extra stabs or effects around the groove without touching the vocal lane.</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">FX sample start</label>
+                        <input type="range" id="fxStartSlider" min="0" max="95" value="0">
+                        <span class="effect-value">0%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">FX sample end</label>
+                        <input type="range" id="fxEndSlider" min="5" max="100" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">FX playback rate</label>
+                        <input type="range" id="fxRateSlider" min="50" max="150" value="100">
                         <span class="effect-value">100%</span>
                     </div>
                 </div>

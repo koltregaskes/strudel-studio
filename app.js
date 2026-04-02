@@ -324,6 +324,62 @@ class SimpleRaveEngine {
         this.registerNode(source, time + 0.22);
     }
 
+    scheduleFxPulse(time) {
+        const level = this.trackLevel('fx');
+        if (level <= 0) {
+            return;
+        }
+
+        const fxSample = this.app.sampleState.fx;
+
+        if (fxSample.buffer) {
+            const source = this.audioContext.createBufferSource();
+            const filter = this.audioContext.createBiquadFilter();
+            const gain = this.audioContext.createGain();
+            const startPoint = fxSample.buffer.duration * fxSample.start;
+            const endPoint = fxSample.buffer.duration * fxSample.end;
+            const duration = Math.max(0.05, endPoint - startPoint);
+
+            source.buffer = fxSample.buffer;
+            source.playbackRate.setValueAtTime(fxSample.rate, time);
+            filter.type = 'highpass';
+            filter.frequency.value = 1200;
+            filter.Q.value = 0.8;
+
+            gain.gain.setValueAtTime(0.0001, time);
+            gain.gain.linearRampToValueAtTime(0.36 * level, time + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + Math.min(duration, 0.52));
+
+            source.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.masterGain);
+            source.start(time, startPoint, duration);
+            this.registerNode(source, time + duration + 0.02);
+            return;
+        }
+
+        const osc = this.audioContext.createOscillator();
+        const filter = this.audioContext.createBiquadFilter();
+        const gain = this.audioContext.createGain();
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(780, time);
+        osc.frequency.exponentialRampToValueAtTime(340, time + 0.18);
+        filter.type = 'bandpass';
+        filter.frequency.value = 1650;
+        filter.Q.value = 2.4;
+
+        gain.gain.setValueAtTime(0.0001, time);
+        gain.gain.linearRampToValueAtTime(0.14 * level, time + 0.003);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.2);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(time);
+        this.registerNode(osc, time + 0.22);
+    }
+
     scheduleBreakGhosts(time, step) {
         const level = this.trackLevel('mainbreak');
         if (level <= 0) {
@@ -373,6 +429,10 @@ class SimpleRaveEngine {
 
         if (this.app.sequenceConfig.vocalSteps.includes(step + 1)) {
             this.scheduleVocalPulse(time);
+        }
+
+        if (this.app.sequenceConfig.fxSteps.includes(step + 1)) {
+            this.scheduleFxPulse(time);
         }
     }
 
@@ -448,6 +508,7 @@ class ProdigyStrudelApp {
             stabs: { volume: 0.6, muted: false },
             lead: { volume: 0.5, muted: false },
             vocal: { volume: 0.8, muted: false },
+            fx: { volume: 0.55, muted: false },
             percussion: { volume: 0.5, muted: false }
         };
 
@@ -471,9 +532,10 @@ class ProdigyStrudelApp {
                     stabs: { volume: 0.28, muted: false },
                     lead: { volume: 0.3, muted: true },
                     vocal: { volume: 0.72, muted: false },
+                    fx: { volume: 0.3, muted: true },
                     percussion: { volume: 0.32, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [16] }
+                sequenceConfig: { vocalSteps: [16], fxSteps: [] }
             },
             main: {
                 label: 'Main',
@@ -486,9 +548,10 @@ class ProdigyStrudelApp {
                     stabs: { volume: 0.6, muted: false },
                     lead: { volume: 0.5, muted: false },
                     vocal: { volume: 0.8, muted: false },
+                    fx: { volume: 0.55, muted: false },
                     percussion: { volume: 0.5, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [8, 16] }
+                sequenceConfig: { vocalSteps: [8, 16], fxSteps: [4, 12] }
             },
             breakdown: {
                 label: 'Breakdown',
@@ -501,9 +564,10 @@ class ProdigyStrudelApp {
                     stabs: { volume: 0.44, muted: false },
                     lead: { volume: 0.38, muted: false },
                     vocal: { volume: 0.86, muted: false },
+                    fx: { volume: 0.44, muted: false },
                     percussion: { volume: 0.26, muted: true }
                 },
-                sequenceConfig: { vocalSteps: [4, 8, 12, 16] }
+                sequenceConfig: { vocalSteps: [4, 8, 12, 16], fxSteps: [12] }
             },
             build: {
                 label: 'Build',
@@ -516,9 +580,10 @@ class ProdigyStrudelApp {
                     stabs: { volume: 0.66, muted: false },
                     lead: { volume: 0.62, muted: false },
                     vocal: { volume: 0.88, muted: false },
+                    fx: { volume: 0.62, muted: false },
                     percussion: { volume: 0.6, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [4, 8, 12, 14, 16] }
+                sequenceConfig: { vocalSteps: [4, 8, 12, 14, 16], fxSteps: [8, 12, 16] }
             },
             climax: {
                 label: 'Climax',
@@ -531,9 +596,10 @@ class ProdigyStrudelApp {
                     stabs: { volume: 0.72, muted: false },
                     lead: { volume: 0.7, muted: false },
                     vocal: { volume: 0.92, muted: false },
+                    fx: { volume: 0.74, muted: false },
                     percussion: { volume: 0.66, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [2, 4, 8, 10, 12, 16] }
+                sequenceConfig: { vocalSteps: [2, 4, 8, 10, 12, 16], fxSteps: [4, 8, 12, 16] }
             },
             outro: {
                 label: 'Outro',
@@ -546,9 +612,10 @@ class ProdigyStrudelApp {
                     stabs: { volume: 0.24, muted: false },
                     lead: { volume: 0.22, muted: true },
                     vocal: { volume: 0.72, muted: false },
+                    fx: { volume: 0.22, muted: true },
                     percussion: { volume: 0.24, muted: false }
                 },
-                sequenceConfig: { vocalSteps: [8, 16] }
+                sequenceConfig: { vocalSteps: [8, 16], fxSteps: [16] }
             }
         };
 
@@ -562,7 +629,8 @@ class ProdigyStrudelApp {
         };
 
         this.sequenceConfig = {
-            vocalSteps: [8, 16]
+            vocalSteps: [8, 16],
+            fxSteps: [4, 12]
         };
 
         this.arrangement = this.createDefaultArrangement();
@@ -666,6 +734,13 @@ arrange(
                 start: 0,
                 end: 1,
                 rate: 1
+            },
+            fx: {
+                buffer: null,
+                fileName: '',
+                start: 0,
+                end: 1,
+                rate: 1
             }
         };
 
@@ -683,6 +758,7 @@ arrange(
             playStopBtn: document.getElementById('playStopBtn'),
             recordBtn: document.getElementById('recordBtn'),
             currentTime: document.getElementById('currentTime'),
+            totalTime: document.getElementById('totalTime'),
             progressFill: document.getElementById('progressFill'),
             arrangementTimeline: document.getElementById('arrangementTimeline'),
             arrangementEditor: document.getElementById('arrangementEditor'),
@@ -704,6 +780,15 @@ arrange(
             auditionVocalBtn: document.getElementById('auditionVocalBtn'),
             clearVocalBtn: document.getElementById('clearVocalBtn'),
             vocalStepGrid: document.getElementById('vocalStepGrid'),
+            fxSampleInput: document.getElementById('fxSampleInput'),
+            fxStepInput: document.getElementById('fxStepInput'),
+            fxStartSlider: document.getElementById('fxStartSlider'),
+            fxEndSlider: document.getElementById('fxEndSlider'),
+            fxRateSlider: document.getElementById('fxRateSlider'),
+            fxStatus: document.getElementById('fxStatus'),
+            auditionFxBtn: document.getElementById('auditionFxBtn'),
+            clearFxBtn: document.getElementById('clearFxBtn'),
+            fxStepGrid: document.getElementById('fxStepGrid'),
             saveProjectBtn: document.getElementById('saveProjectBtn'),
             exportProjectBtn: document.getElementById('exportProjectBtn'),
             importProjectBtn: document.getElementById('importProjectBtn'),
@@ -723,6 +808,7 @@ arrange(
 
     init() {
         this.buildVocalStepButtons();
+        this.buildFxStepButtons();
         this.renderExampleLibrary();
         this.loadSavedProject();
         if (!this.userHasCustomCode || !this.dom.codeTextarea.value) {
@@ -736,6 +822,7 @@ arrange(
         this.updateEffectDisplays();
         this.updateRecordingButton();
         this.updateSampleStatus();
+        this.updateFxStatus();
         this.setupCodeEditor();
         this.initializeStrudel();
     }
@@ -831,6 +918,23 @@ arrange(
         }
     }
 
+    buildFxStepButtons() {
+        if (!this.dom.fxStepGrid || this.dom.fxStepGrid.children.length > 0) {
+            return;
+        }
+
+        for (let step = 1; step <= 16; step += 1) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'step-toggle step-toggle--accent';
+            button.dataset.step = String(step);
+            button.textContent = String(step);
+            button.setAttribute('aria-pressed', 'false');
+            button.addEventListener('click', () => this.toggleFxStep(step));
+            this.dom.fxStepGrid.appendChild(button);
+        }
+    }
+
     syncDomFromState() {
         this.dom.masterVolume.value = Math.round(this.globalEffects.masterVolume * 100);
         this.dom.tempoSlider.value = this.globalEffects.tempo;
@@ -841,6 +945,10 @@ arrange(
         this.dom.vocalStartSlider.value = Math.round(this.sampleState.vocal.start * 100);
         this.dom.vocalEndSlider.value = Math.round(this.sampleState.vocal.end * 100);
         this.dom.vocalRateSlider.value = Math.round(this.sampleState.vocal.rate * 100);
+        this.dom.fxStepInput.value = this.sequenceConfig.fxSteps.join(',');
+        this.dom.fxStartSlider.value = Math.round(this.sampleState.fx.start * 100);
+        this.dom.fxEndSlider.value = Math.round(this.sampleState.fx.end * 100);
+        this.dom.fxRateSlider.value = Math.round(this.sampleState.fx.rate * 100);
 
         document.querySelectorAll('.track-volume-slider').forEach((slider) => {
             const trackId = slider.dataset.track;
@@ -858,6 +966,7 @@ arrange(
         });
 
         this.renderVocalStepGrid();
+        this.renderFxStepGrid();
         this.renderSceneState();
         this.renderArrangementTimeline();
         this.renderArrangementEditor();
@@ -871,6 +980,20 @@ arrange(
 
         const activeSteps = new Set(this.sequenceConfig.vocalSteps);
         this.dom.vocalStepGrid.querySelectorAll('.step-toggle').forEach((button) => {
+            const step = parseInt(button.dataset.step, 10);
+            const isActive = activeSteps.has(step);
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
+    }
+
+    renderFxStepGrid() {
+        if (!this.dom.fxStepGrid) {
+            return;
+        }
+
+        const activeSteps = new Set(this.sequenceConfig.fxSteps);
+        this.dom.fxStepGrid.querySelectorAll('.step-toggle').forEach((button) => {
             const step = parseInt(button.dataset.step, 10);
             const isActive = activeSteps.has(step);
             button.classList.toggle('active', isActive);
@@ -928,6 +1051,21 @@ arrange(
         }
 
         this.dom.sampleStatus.textContent = `Using the built-in placeholder vocal texture on steps ${stepSummary}. Import a sample to hear real vocal chops.`;
+    }
+
+    updateFxStatus() {
+        const fx = this.sampleState.fx;
+        const stepSummary = this.sequenceConfig.fxSteps.join(', ') || 'none';
+
+        if (fx.buffer) {
+            const start = Math.round(fx.start * 100);
+            const end = Math.round(fx.end * 100);
+            const rate = Math.round(fx.rate * 100);
+            this.dom.fxStatus.textContent = `${fx.fileName} loaded. Triggering on steps ${stepSummary}. Slice ${start}% to ${end}% at ${rate}% speed.`;
+            return;
+        }
+
+        this.dom.fxStatus.textContent = `Using the built-in synth stab texture on steps ${stepSummary}. Import a sample to turn this lane into your own FX or stab layer.`;
     }
 
     renderArrangementTimeline() {
@@ -1206,6 +1344,12 @@ arrange(
                     start: this.sampleState.vocal.start,
                     end: this.sampleState.vocal.end,
                     rate: this.sampleState.vocal.rate
+                },
+                fx: {
+                    fileName: this.sampleState.fx.fileName,
+                    start: this.sampleState.fx.start,
+                    end: this.sampleState.fx.end,
+                    rate: this.sampleState.fx.rate
                 }
             },
             customCode: this.dom.codeTextarea.value,
@@ -1240,10 +1384,22 @@ arrange(
             this.sequenceConfig.vocalSteps = this.parseVocalSteps(project.sequenceConfig.vocalSteps.join(','));
         }
 
+        if (project.sequenceConfig?.fxSteps) {
+            this.sequenceConfig.fxSteps = this.parseVocalSteps(project.sequenceConfig.fxSteps.join(','));
+        }
+
         if (project.sampleSettings?.vocal) {
             this.sampleState.vocal = {
                 ...this.sampleState.vocal,
                 ...project.sampleSettings.vocal,
+                buffer: null
+            };
+        }
+
+        if (project.sampleSettings?.fx) {
+            this.sampleState.fx = {
+                ...this.sampleState.fx,
+                ...project.sampleSettings.fx,
                 buffer: null
             };
         }
@@ -1262,6 +1418,7 @@ arrange(
         this.updateVolumeDisplays();
         this.updateEffectDisplays();
         this.updateSampleStatus();
+        this.updateFxStatus();
         this.engine.syncMix();
     }
 
@@ -1307,6 +1464,26 @@ arrange(
         this.showNotification(`Loaded vocal sample: ${file.name}`, 'success');
     }
 
+    async handleFxSampleFile(file) {
+        await this.engine.ensureAudioContext();
+        const arrayBuffer = await file.arrayBuffer();
+        const decoded = await this.engine.audioContext.decodeAudioData(arrayBuffer.slice(0));
+
+        this.sampleState.fx.buffer = decoded;
+        this.sampleState.fx.fileName = file.name;
+        this.sampleState.fx.start = 0;
+        this.sampleState.fx.end = 1;
+        this.sampleState.fx.rate = 1;
+
+        this.syncDomFromState();
+        this.updateEffectDisplays();
+        this.updateFxStatus();
+        this.markSceneCustom();
+        this.syncDefaultCodeFromControls();
+        this.persistProject();
+        this.showNotification(`Loaded FX sample: ${file.name}`, 'success');
+    }
+
     clearVocalSample() {
         this.sampleState.vocal = {
             buffer: null,
@@ -1324,10 +1501,33 @@ arrange(
         this.showNotification('Vocal sample cleared. Placeholder vocal texture is active again.', 'info');
     }
 
+    clearFxSample() {
+        this.sampleState.fx = {
+            buffer: null,
+            fileName: '',
+            start: 0,
+            end: 1,
+            rate: 1
+        };
+        this.syncDomFromState();
+        this.updateEffectDisplays();
+        this.updateFxStatus();
+        this.markSceneCustom();
+        this.syncDefaultCodeFromControls();
+        this.persistProject();
+        this.showNotification('FX sample cleared. Built-in stab texture is active again.', 'info');
+    }
+
     async auditionVocalSample() {
         await this.engine.ensureAudioContext();
         this.engine.scheduleVocalPulse(this.engine.audioContext.currentTime + 0.03);
         this.renderStrudelStatus('Playing a quick vocal preview from the current slice and rate settings.', 'ready');
+    }
+
+    async auditionFxSample() {
+        await this.engine.ensureAudioContext();
+        this.engine.scheduleFxPulse(this.engine.audioContext.currentTime + 0.03);
+        this.renderStrudelStatus('Playing a quick FX preview from the current slice and rate settings.', 'ready');
     }
 
     toggleVocalStep(step) {
@@ -1343,6 +1543,24 @@ arrange(
         this.dom.vocalStepInput.value = this.sequenceConfig.vocalSteps.join(',');
         this.renderVocalStepGrid();
         this.updateSampleStatus();
+        this.markSceneCustom();
+        this.syncDefaultCodeFromControls();
+        this.persistProject();
+    }
+
+    toggleFxStep(step) {
+        const stepSet = new Set(this.sequenceConfig.fxSteps);
+
+        if (stepSet.has(step)) {
+            stepSet.delete(step);
+        } else {
+            stepSet.add(step);
+        }
+
+        this.sequenceConfig.fxSteps = Array.from(stepSet).sort((left, right) => left - right);
+        this.dom.fxStepInput.value = this.sequenceConfig.fxSteps.join(',');
+        this.renderFxStepGrid();
+        this.updateFxStatus();
         this.markSceneCustom();
         this.syncDefaultCodeFromControls();
         this.persistProject();
@@ -1371,10 +1589,15 @@ arrange(
             this.sequenceConfig.vocalSteps = [...scene.sequenceConfig.vocalSteps];
         }
 
+        if (scene.sequenceConfig?.fxSteps) {
+            this.sequenceConfig.fxSteps = [...scene.sequenceConfig.fxSteps];
+        }
+
         this.syncDomFromState();
         this.updateVolumeDisplays();
         this.updateEffectDisplays();
         this.updateSampleStatus();
+        this.updateFxStatus();
         this.engine.syncMix();
         this.syncDefaultCodeFromControls();
         this.persistProject();
@@ -1420,6 +1643,13 @@ arrange(
             });
         });
         this.dom.clearVocalBtn.addEventListener('click', () => this.clearVocalSample());
+        this.dom.auditionFxBtn.addEventListener('click', () => {
+            this.auditionFxSample().catch((error) => {
+                console.error('FX audition failed:', error);
+                this.showNotification(`FX audition failed: ${error.message}`, 'error');
+            });
+        });
+        this.dom.clearFxBtn.addEventListener('click', () => this.clearFxSample());
 
         this.dom.sceneButtons.forEach((button) => {
             button.addEventListener('click', () => this.applyScenePreset(button.dataset.scene));
@@ -1494,12 +1724,35 @@ arrange(
             });
         });
 
+        this.dom.fxSampleInput.addEventListener('change', (event) => {
+            const [file] = event.target.files || [];
+            if (!file) {
+                return;
+            }
+
+            this.handleFxSampleFile(file).catch((error) => {
+                console.error('FX import failed:', error);
+                this.showNotification(`FX import failed: ${error.message}`, 'error');
+            });
+        });
+
         this.dom.vocalStepInput.addEventListener('change', (event) => {
             const steps = this.parseVocalSteps(event.target.value);
             this.sequenceConfig.vocalSteps = steps.length ? steps : [8, 16];
             event.target.value = this.sequenceConfig.vocalSteps.join(',');
             this.renderVocalStepGrid();
             this.updateSampleStatus();
+            this.markSceneCustom();
+            this.syncDefaultCodeFromControls();
+            this.persistProject();
+        });
+
+        this.dom.fxStepInput.addEventListener('change', (event) => {
+            const steps = this.parseVocalSteps(event.target.value);
+            this.sequenceConfig.fxSteps = steps;
+            event.target.value = this.sequenceConfig.fxSteps.join(',');
+            this.renderFxStepGrid();
+            this.updateFxStatus();
             this.markSceneCustom();
             this.syncDefaultCodeFromControls();
             this.persistProject();
@@ -1524,6 +1777,31 @@ arrange(
 
                 this.updateEffectDisplay(event.target.nextElementSibling, event.target.value);
                 this.updateSampleStatus();
+                this.markSceneCustom();
+                this.syncDefaultCodeFromControls();
+                this.persistProject();
+            });
+        });
+
+        [
+            ['fxStartSlider', 'start'],
+            ['fxEndSlider', 'end'],
+            ['fxRateSlider', 'rate']
+        ].forEach(([id, key]) => {
+            this.dom[id].addEventListener('input', (event) => {
+                const value = event.target.value / 100;
+                if (key === 'start') {
+                    this.sampleState.fx.start = Math.min(value, this.sampleState.fx.end - 0.05);
+                    event.target.value = Math.round(this.sampleState.fx.start * 100);
+                } else if (key === 'end') {
+                    this.sampleState.fx.end = Math.max(value, this.sampleState.fx.start + 0.05);
+                    event.target.value = Math.round(this.sampleState.fx.end * 100);
+                } else {
+                    this.sampleState.fx.rate = value;
+                }
+
+                this.updateEffectDisplay(event.target.nextElementSibling, event.target.value);
+                this.updateFxStatus();
                 this.markSceneCustom();
                 this.syncDefaultCodeFromControls();
                 this.persistProject();
@@ -1574,12 +1852,16 @@ arrange(
         const vocalComment = this.sampleState.vocal.fileName
             ? `// Vocal sample loaded locally: ${this.sampleState.vocal.fileName}\n// Trigger steps: ${this.sequenceConfig.vocalSteps.join(', ')}\n`
             : `// Vocal layer currently uses the built-in placeholder texture.\n// Trigger steps: ${this.sequenceConfig.vocalSteps.join(', ')}\n`;
+        const fxComment = this.sampleState.fx.fileName
+            ? `// FX sample loaded locally: ${this.sampleState.fx.fileName}\n// FX trigger steps: ${this.sequenceConfig.fxSteps.join(', ') || 'none'}\n`
+            : `// FX lane currently uses the built-in stab texture.\n// FX trigger steps: ${this.sequenceConfig.fxSteps.join(', ') || 'none'}\n`;
 
         return `// Export-friendly Strudel sketch for the same arrangement
 // Active scene: ${activeScene}
 // Arrangement:
 ${arrangementComment}
 ${vocalComment}
+${fxComment}
 
 stack(
   s("bd*4").gain(${(this.trackStates.kick.muted ? 0 : this.trackStates.kick.volume * this.globalEffects.masterVolume).toFixed(2)}),
@@ -1839,9 +2121,8 @@ stack(
     }
 
     updateTimeDisplay() {
-        const minutes = Math.floor(this.currentTime / 60);
-        const seconds = Math.floor(this.currentTime % 60);
-        this.dom.currentTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        this.dom.currentTime.textContent = this.formatTime(this.currentTime);
+        this.dom.totalTime.textContent = this.formatTime(this.totalTime);
     }
 
     updateProgress() {

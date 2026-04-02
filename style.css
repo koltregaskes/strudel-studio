@@ -1224,6 +1224,12 @@ body {
   box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.14), 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
+.step-toggle--accent.active {
+  background: linear-gradient(135deg, rgba(255, 88, 143, 0.22), rgba(255, 187, 71, 0.24));
+  border-color: color-mix(in srgb, var(--color-accent) 72%, white 28%);
+  box-shadow: 0 0 0 1px rgba(255, 88, 143, 0.14), 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+
 .project-header {
   display: flex;
   justify-content: space-between;
