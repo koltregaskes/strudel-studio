@@ -1510,6 +1510,14 @@ body {
   color: #000;
 }
 
+.site-footer {
+  text-align: center;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(240, 248, 255, 0.62);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .app-container {
