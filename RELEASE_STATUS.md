@@ -1,5 +1,13 @@
 # Strudel Studio Release Status
 
+Last updated: 2026-04-09
+Review state: Ready for review
+Repo: `W:\Repos\_My Tools\strudel-studio`
+Branch: `main`
+Latest pushed commit: `16a534a`
+Canonical manager status file: `RELEASE_STATUS.md`
+Feature baseline: `FEATURE_SNAPSHOT.md`
+
 ## Shipped
 - Simple View console shell and Advanced View workstation are implemented.
 - Local Web Audio transport, arrangement editing, Pattern Rack, sample lanes, project snapshots, and project export/import are working locally.

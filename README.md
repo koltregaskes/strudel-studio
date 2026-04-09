@@ -35,3 +35,7 @@ Strudel Studio is a click-first browser music studio with a programmable Strudel
 - Windows-first local workflow is the primary target
 - Android is currently served through the PWA path
 - Native desktop or native Android wrappers can be evaluated later if the PWA path proves too limiting
+
+## Manager Visibility
+- Current status for the Tools Manager lives in `RELEASE_STATUS.md`.
+- The shipped feature baseline lives in `FEATURE_SNAPSHOT.md`.
