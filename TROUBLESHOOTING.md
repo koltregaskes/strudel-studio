@@ -1,9 +1,11 @@
 # Troubleshooting
 
-- **No sound plays after pressing `Play`**: Check whether the browser blocked audio autoplay. Press `Play` again after interacting with the page, and make sure your system output device is active.
-- **The status says local playback is active but Strudel evaluation failed**: That is acceptable for this app. The built-in engine handles preview playback; the Strudel panel is mainly for export and experimentation.
-- **No live code update appears in the Strudel panel**: The external Strudel script may be blocked or unavailable. Local playback should still work.
-- **The song structure looks wrong after importing a project**: Use `Restore Default` in the arrangement section to rebuild the standard layout, then import only the parts you still want.
-- **A vocal sample vanishes after importing a project file**: Reload the sample from disk. Project files keep the sample settings, but not the raw audio file itself.
-- **An FX sample vanishes after importing a project file**: Reload the FX or stab sample from disk. The project keeps the slice and step settings, but not the raw audio file.
-- **A `Thumbs.db` file keeps appearing**: That is a Windows Explorer cache file and is ignored by git in this repo.
+- **No sound plays after pressing `Play`**: Interact with the page first, then press `Play` again so the browser allows Web Audio to start. If you still hear nothing, run `Audio Check` in `Audio Diagnostics` and inspect the context, meter, and warning states.
+- **The code panel says Strudel evaluation failed**: The built-in engine is still the main playback path. You can keep working and exporting even if the external Strudel runtime does not cooperate.
+- **The AI panel refuses a request**: The assistant only accepts localhost endpoints. Use `127.0.0.1`, `localhost`, `0.0.0.0`, or `::1`.
+- **The Install button is disabled**: The browser has not exposed a PWA install prompt yet, or the app is already installed in that profile.
+- **A snapshot does not appear in Project Shelf**: Make sure the browser allows IndexedDB/local storage for the site and that you are not in a blocked private session.
+- **Imported samples are missing after switching browsers or profiles**: Local shelf snapshots live in the current browser profile. Use `Export Project` if you want a portable file.
+- **Imported samples are missing after an imported JSON file**: Full exported project files now carry embedded sample assets, but older exports may not. Re-import the sample manually if needed.
+- **The arrangement looks broken after an old draft loads**: Use `Restore Default` in `Track Structure`, then rebuild from the shelf or import a newer project file.
+- **A `Thumbs.db` file appears**: That is a Windows Explorer cache file and is ignored by git.

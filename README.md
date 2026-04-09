@@ -1,33 +1,37 @@
 # Strudel Studio
 
-A browser-based control surface and sketch pad for recreating The Prodigy's "Everybody's in the Place".
+Strudel Studio is a click-first browser music studio with a programmable Strudel layer on top. The UI is the main surface, but the code editor, arrangement engine, sample lanes, recording flow, and local AI panel are all built in.
 
-This repo now acts as the main lightweight path toward `Strudel Studio`, with dependable local playback, editable generated code, and the best rescued ideas from the old Remix branch.
+## Current Product Shape
+- Local Web Audio playback with no server-side dependency
+- Two workspace shells:
+  - `Simple View` for a one-screen console layout
+  - `Advanced View` for a tabbed workstation
+- Session metadata for title, tempo, key, and notes so projects read like real studio workspaces
+- Arrangement timeline plus per-section editor with drag reorder, drag resize, duplicate controls, and structure templates
+- Scene presets for intro, main, breakdown, build, climax, and outro
+- Pattern Rack for capturing multiple groove snapshots and scenes inside one project
+- Beat Designer for kick, snare, and hats, plus quick groove-action buttons and sequencing utilities
+- Mixer with mute, solo, pan, and level controls
+- Four sample lanes: vocal, FX, texture, and perc one-shots
+- Sample + Clip Library for loaded lane assets, lane targeting, auditioning, and cleanup
+- Licensing-aware sample browser that ships templates, not copyrighted audio
+- Audio diagnostics with meter activity, warning states, and a direct `Audio Check` trigger
+- Split-screen and code-focus workspace layouts
+- Local-only AI assistant for code and composition help via an OpenAI-compatible localhost endpoint
+- Browser project shelf with local snapshots stored in IndexedDB
+- Export Dock with live JSON preview, copy, download, and full project import/export support
+- Recording export from the local mix
+- PWA install support for desktop and Android-style home screen use
+- Repo-tracked feature inventory in `FEATURE_SNAPSHOT.md`
 
-## What It Does
-- Plays a local synth-and-drum preview directly in the browser
-- Shows the track structure, track elements, and effect controls in one page
-- Generates an editable Strudel sketch alongside the live playback controls
-- Lets you tweak the code and export it for use in the official Strudel environment
-- Records the local mix and exports a take from the browser
-- Imports a vocal sample, slices it, changes playback rate, and triggers it on chosen steps
-- Adds a second FX / stab sample lane for extra hits, risers, and rave textures
-- Includes a click-to-build beat designer for kick, snare, and hat patterns
-- Adds clickable scene presets for intro, main, breakdown, build, climax, and outro moods
-- Provides two sample sequencer lanes with quick audition and clear-sample controls
-- Saves project state in the browser and exports/imports project JSON
-- Includes a reusable example-code library for fast song starts
-- Lets you edit the arrangement by section, bars, and scene from the web UI
+## Why This Repo Exists
+- Keep the Strudel-inspired coding layer
+- Keep the studio UI as the main experience
+- Stay licensing-aware around samples and presets
+- Build a real product instead of a throwaway demo
 
-## What Was Salvaged From Remix
-
-- The example library concept
-- The editable arrangement / track-structure idea
-- The broader "Studio" framing rather than a throwaway test harness
-
-## Current Status
-
-- Local playback path works without relying on the broken Strudel embed route
-- The repo is useful as a real browser-based music sketch tool
-- It now has beat design, two sample lanes, arrangement editing, scene presets, recording, and code examples in one surface
-- It is now the clearer single path to continue under the renamed `strudel-studio` repo
+## Launch Notes
+- Windows-first local workflow is the primary target
+- Android is currently served through the PWA path
+- Native desktop or native Android wrappers can be evaluated later if the PWA path proves too limiting

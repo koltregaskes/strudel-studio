@@ -4,27 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strudel Studio</title>
+    <meta name="theme-color" content="#10192a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Strudel Studio">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon-maskable.svg">
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@strudel/web@1.0.3"></script>
 </head>
 <body>
-    <div class="app-container">
+    <div class="app-container" id="appContainer" data-workspace-layout="studio" data-assistant-visible="false" data-interface-mode="simple" data-advanced-tab="arrange" data-drawer-tab="projects" data-shell-ready="false">
         <header class="app-header">
-            <h1>Strudel Studio</h1>
-            <p class="subtitle">A sample-driven coded music studio. Current sketch: The Prodigy - Everybody's in the Place.</p>
+            <div class="app-header__title">
+                <h1>Strudel Studio</h1>
+                <p class="subtitle">A sample-driven coded music studio with click-first controls, programmable patterns, and a local AI code partner.</p>
+            </div>
+            <div class="header-actions">
+                <div class="shell-mode-switch" role="tablist" aria-label="Interface mode">
+                    <button id="simpleViewBtn" class="btn btn--secondary" type="button" aria-pressed="true">Simple View</button>
+                    <button id="advancedViewBtn" class="btn btn--outline" type="button" aria-pressed="false">Advanced View</button>
+                </div>
+                <div class="header-status-stack">
+                    <span id="projectStatusText" class="status-pill">Draft autosave active</span>
+                    <button id="installAppBtn" class="btn btn--outline" type="button" disabled title="The install prompt appears only when the browser makes it available.">Install App</button>
+                </div>
+            </div>
         </header>
+
+        <div class="surface-shells" id="surfaceShells">
+            <div id="consoleSummaryStrip" class="console-summary-strip" aria-label="Studio console summary"></div>
+
+            <div id="simpleShell" class="simple-shell" aria-label="Simple studio console">
+                <div id="simpleLeftDock" class="console-dock console-dock--left"></div>
+                <div id="simpleCenterDock" class="console-dock console-dock--center"></div>
+                <div id="simpleRightDock" class="console-dock console-dock--right"></div>
+                <section class="console-drawer card">
+                    <div class="card__body">
+                        <div class="console-drawer__header">
+                            <div>
+                                <h3>Lower Deck</h3>
+                                <p class="helper-text">Keep deeper controls close without turning the whole studio into a scrolling page.</p>
+                            </div>
+                            <div class="console-drawer__tabs" role="tablist" aria-label="Console drawer tabs">
+                                <button class="btn btn--secondary console-drawer-tab" id="drawerWorkspaceBtn" type="button" data-drawer-tab="workspace" aria-pressed="false">Workspace</button>
+                                <button class="btn btn--secondary console-drawer-tab" id="drawerProjectsBtn" type="button" data-drawer-tab="projects" aria-pressed="true">Projects + Export</button>
+                                <button class="btn btn--secondary console-drawer-tab" id="drawerFactoryBtn" type="button" data-drawer-tab="factory" aria-pressed="false">Factory</button>
+                                <button class="btn btn--secondary console-drawer-tab" id="drawerSystemBtn" type="button" data-drawer-tab="system" aria-pressed="false">System</button>
+                            </div>
+                        </div>
+                        <div id="consoleDrawerViewport" class="console-drawer__viewport" aria-live="polite"></div>
+                    </div>
+                </section>
+            </div>
+
+            <section id="advancedShell" class="advanced-shell card" aria-label="Advanced workstation">
+                <div class="card__body">
+                    <div class="advanced-shell__header">
+                        <div>
+                            <h3>Advanced Workstation</h3>
+                            <p class="helper-text">Full-tab editing surface for arranging, sound design, sampling, code, and project management.</p>
+                        </div>
+                        <div class="advanced-shell__tabs" role="tablist" aria-label="Advanced workstation tabs">
+                            <button class="btn btn--secondary advanced-tab-btn" id="advancedArrangeBtn" type="button" data-advanced-tab="arrange" aria-pressed="true">Arrange</button>
+                            <button class="btn btn--secondary advanced-tab-btn" id="advancedSoundBtn" type="button" data-advanced-tab="sound" aria-pressed="false">Sound</button>
+                            <button class="btn btn--secondary advanced-tab-btn" id="advancedSamplesBtn" type="button" data-advanced-tab="samples" aria-pressed="false">Samples</button>
+                            <button class="btn btn--secondary advanced-tab-btn" id="advancedCodeBtn" type="button" data-advanced-tab="code" aria-pressed="false">Code + AI</button>
+                            <button class="btn btn--secondary advanced-tab-btn" id="advancedProjectsBtn" type="button" data-advanced-tab="projects" aria-pressed="false">Projects + Export</button>
+                        </div>
+                    </div>
+                    <div id="advancedTabViewport" class="advanced-shell__viewport" aria-live="polite"></div>
+                </div>
+            </section>
+        </div>
+
+        <div id="surfaceSectionPool" class="surface-section-pool">
 
         <section class="track-info card">
             <div class="card__body">
-                <div class="track-details">
-                    <div class="track-meta">
-                        <span class="meta-item"><strong>BPM:</strong> 131</span>
-                        <span class="meta-item"><strong>Key:</strong> C#/Db major</span>
-                        <span class="meta-item"><strong>Style:</strong> Breakbeat/Hardcore</span>
-                        <span class="meta-item"><strong>Year:</strong> 1991</span>
+                <div class="track-details session-deck">
+                    <div class="session-deck__main">
+                        <div>
+                            <p class="eyebrow">Active Session</p>
+                            <h2 id="sessionTitleDisplay" class="session-title">Untitled Session</h2>
+                            <p id="sessionNotesSummary" class="track-samples">Shape the groove, save pattern snapshots, and keep direction notes here.</p>
+                        </div>
+                        <div class="track-meta session-deck__stats">
+                            <span class="meta-item"><strong>BPM:</strong> <span id="sessionTempoMeta">131</span></span>
+                            <span class="meta-item"><strong>Key:</strong> <span id="sessionKeyMeta">C#/Db major</span></span>
+                            <span class="meta-item"><strong>Patterns:</strong> <span id="sessionPatternCountMeta">0</span></span>
+                            <span class="meta-item"><strong>Clips:</strong> <span id="sessionClipCountMeta">0</span></span>
+                        </div>
                     </div>
                     <div class="track-samples">
-                        <strong>Key Samples:</strong> Amen Break, hardcore stabs, rave lead, vocal fragments
+                        <strong>Session Snapshot:</strong> <span id="sessionSampleSummary">Tempo-locked rave skeleton with vocal, FX, texture, and perc lanes ready to shape.</span>
                     </div>
                 </div>
             </div>
@@ -65,6 +140,57 @@
                         <span class="tempo-value">131 BPM</span>
                     </div>
                 </div>
+                <div class="recording-options">
+                    <div class="control-group">
+                        <label class="form-label" for="takeNameInput">Take Label</label>
+                        <input type="text" id="takeNameInput" class="form-control" value="untitled-session" placeholder="untitled-session">
+                    </div>
+                    <label class="toggle-chip" for="autoStopRecordInput">
+                        <input type="checkbox" id="autoStopRecordInput" checked>
+                        <span>Auto-stop at arrangement end</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section class="audio-diagnostics card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Audio Diagnostics</h3>
+                        <p class="helper-text">Check the audio path, watch meter activity, and run a direct output test if the studio seems silent.</p>
+                    </div>
+                    <div class="project-actions">
+                        <button id="audioCheckBtn" class="btn btn--secondary" type="button">Audio Check</button>
+                    </div>
+                </div>
+                <div class="audio-diagnostics__grid">
+                    <div class="audio-diagnostics__tile">
+                        <span class="eyebrow">Context</span>
+                        <strong id="audioContextState">Idle</strong>
+                        <span class="helper-text">Browser audio unlock state</span>
+                    </div>
+                    <div class="audio-diagnostics__tile">
+                        <span class="eyebrow">Engine</span>
+                        <strong id="audioEngineState">Stopped</strong>
+                        <span class="helper-text">Live transport and scheduler</span>
+                    </div>
+                    <div class="audio-diagnostics__tile">
+                        <span class="eyebrow">Output Path</span>
+                        <strong id="audioOutputState">Signal idle</strong>
+                        <span id="audioAlertText" class="helper-text">Press Play or Audio Check to wake the browser audio path.</span>
+                    </div>
+                    <div class="audio-diagnostics__meter">
+                        <div class="audio-diagnostics__meter-head">
+                            <span class="eyebrow">Meter</span>
+                            <strong id="audioMeterValue">0%</strong>
+                        </div>
+                        <div class="audio-meter-bar" aria-hidden="true">
+                            <div id="audioMeterFill" class="audio-meter-fill"></div>
+                        </div>
+                        <span id="audioSoloState" class="helper-text">No channel warnings.</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -73,9 +199,12 @@
                 <div class="project-header">
                     <div>
                         <h3>Track Structure</h3>
-                        <p class="helper-text">This is the main Remix rescue: build your song in sections, change the order, and control how long each part lasts.</p>
+                        <p class="helper-text">Build the track in sections, then drag blocks to reorder them or drag the right edge of a block to resize its bar length.</p>
                     </div>
                     <div class="project-actions">
+                        <button class="btn btn--outline structure-template-btn" data-structure-template="radio-edit" type="button">Radio Edit</button>
+                        <button class="btn btn--outline structure-template-btn" data-structure-template="dj-tool" type="button">DJ Tool</button>
+                        <button class="btn btn--outline structure-template-btn" data-structure-template="extended-mix" type="button">Extended Mix</button>
                         <button id="addSectionBtn" class="btn btn--secondary" type="button">Add Section</button>
                         <button id="resetArrangementBtn" class="btn btn--outline" type="button">Restore Default</button>
                     </div>
@@ -104,6 +233,21 @@
             </div>
         </section>
 
+        <section class="pattern-rack card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Pattern Rack</h3>
+                        <p class="helper-text">Capture the current groove as reusable project scenes, then load, duplicate, or refresh them as the session evolves.</p>
+                    </div>
+                    <div class="project-actions">
+                        <button id="capturePatternBtn" class="btn btn--secondary" type="button">Capture Current Pattern</button>
+                    </div>
+                </div>
+                <div id="patternRackList" class="pattern-rack-list" aria-label="Project pattern rack"></div>
+            </div>
+        </section>
+
         <section class="rhythm-designer card">
             <div class="card__body">
                 <div class="project-header">
@@ -115,6 +259,35 @@
                         <button class="btn btn--secondary rhythm-preset-btn" data-rhythm-preset="club-drive" type="button">Club Drive</button>
                         <button class="btn btn--secondary rhythm-preset-btn" data-rhythm-preset="break-swing" type="button">Break Swing</button>
                         <button class="btn btn--secondary rhythm-preset-btn" data-rhythm-preset="half-time" type="button">Half-Time</button>
+                    </div>
+                </div>
+                <div class="rhythm-actions" aria-label="Beat quick actions">
+                    <button class="btn btn--outline btn--sm rhythm-action-btn" data-rhythm-action="tighten" type="button">Tighten</button>
+                    <button class="btn btn--outline btn--sm rhythm-action-btn" data-rhythm-action="hat-drive" type="button">Full Hats</button>
+                    <button class="btn btn--outline btn--sm rhythm-action-btn" data-rhythm-action="break-shuffle" type="button">Break Shuffle</button>
+                    <button class="btn btn--outline btn--sm rhythm-action-btn" data-rhythm-action="surprise" type="button">Surprise Me</button>
+                    <button class="btn btn--outline btn--sm rhythm-action-btn" data-rhythm-action="clear" type="button">Clear Beat</button>
+                </div>
+                <div class="sequencer-utility-bar">
+                    <div>
+                        <h4>Sequencer Utilities</h4>
+                        <p class="helper-text">Target one lane, then nudge, thin, or densify it without rebuilding the whole groove.</p>
+                    </div>
+                    <div class="sequencer-utility-bar__controls">
+                        <select id="sequenceTargetLane" class="form-control">
+                            <option value="kick">Kick lane</option>
+                            <option value="snare">Snare lane</option>
+                            <option value="hat">Hat lane</option>
+                            <option value="vocal">Vocal lane</option>
+                            <option value="fx">FX lane</option>
+                            <option value="texture">Texture lane</option>
+                            <option value="perc">Perc lane</option>
+                        </select>
+                        <button class="btn btn--outline btn--sm sequencer-action-btn" data-sequence-action="shift-left" type="button">Shift Left</button>
+                        <button class="btn btn--outline btn--sm sequencer-action-btn" data-sequence-action="shift-right" type="button">Shift Right</button>
+                        <button class="btn btn--outline btn--sm sequencer-action-btn" data-sequence-action="densify" type="button">Double Up</button>
+                        <button class="btn btn--outline btn--sm sequencer-action-btn" data-sequence-action="thin" type="button">Thin Out</button>
+                        <button class="btn btn--outline btn--sm sequencer-action-btn" data-sequence-action="clear" type="button">Clear Lane</button>
                     </div>
                 </div>
 
@@ -157,7 +330,12 @@
 
         <section class="track-controls card">
             <div class="card__body">
-                <h3>Track Elements</h3>
+                <div class="project-header">
+                    <div>
+                        <h3>Mixer</h3>
+                        <p class="helper-text">Treat this like a real channel strip. Mute, solo, pan, and rebalance the live engine without touching the code.</p>
+                    </div>
+                </div>
                 <div class="tracks-grid">
                     <div class="track-control" data-track="mainbreak">
                         <div class="track-header">
@@ -262,6 +440,32 @@
                             <span class="volume-display">50%</span>
                         </div>
                     </div>
+
+                    <div class="track-control" data-track="texture">
+                        <div class="track-header">
+                            <h4>Texture Lane</h4>
+                            <button class="btn btn--sm mute-btn">Mute</button>
+                        </div>
+                        <div class="track-description">Atmospheric chops, reversed swells, and ghost layers.</div>
+                        <div class="track-volume">
+                            <label>Volume</label>
+                            <input type="range" class="track-volume-slider" min="0" max="100" value="42" data-track="texture">
+                            <span class="volume-display">42%</span>
+                        </div>
+                    </div>
+
+                    <div class="track-control" data-track="percshot">
+                        <div class="track-header">
+                            <h4>Perc Shot Lane</h4>
+                            <button class="btn btn--sm mute-btn">Mute</button>
+                        </div>
+                        <div class="track-description">Clicks, rides, shakers, and tight one-shot percussion accents.</div>
+                        <div class="track-volume">
+                            <label>Volume</label>
+                            <input type="range" class="track-volume-slider" min="0" max="100" value="38" data-track="percshot">
+                            <span class="volume-display">38%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -273,7 +477,7 @@
                     <div class="sample-upload">
                         <label class="form-label" for="vocalSampleInput">Import vocal sample</label>
                         <input type="file" id="vocalSampleInput" accept="audio/*">
-                        <p id="sampleStatus" class="sample-status">Using the built-in placeholder vocal texture.</p>
+                        <p id="sampleStatus" class="sample-status">Using the built-in factory vocal layer on steps 8 and 16.</p>
                     </div>
 
                     <div class="control-group">
@@ -311,6 +515,11 @@
                         <input type="range" id="vocalRateSlider" min="50" max="150" value="100">
                         <span class="effect-value">100%</span>
                     </div>
+
+                    <label class="toggle-chip" for="vocalReverseToggle">
+                        <input type="checkbox" id="vocalReverseToggle">
+                        <span>Reverse vocal lane</span>
+                    </label>
 
                     <div class="sample-upload">
                         <label class="form-label" for="fxSampleInput">Import FX or stab sample</label>
@@ -353,7 +562,128 @@
                         <input type="range" id="fxRateSlider" min="50" max="150" value="100">
                         <span class="effect-value">100%</span>
                     </div>
+
+                    <label class="toggle-chip" for="fxReverseToggle">
+                        <input type="checkbox" id="fxReverseToggle">
+                        <span>Reverse FX lane</span>
+                    </label>
+
+                    <div class="sample-upload">
+                        <label class="form-label" for="textureSampleInput">Import texture or riser sample</label>
+                        <input type="file" id="textureSampleInput" accept="audio/*">
+                        <p id="textureStatus" class="sample-status">Using the built-in airy texture pulse on steps 1 and 9.</p>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Texture trigger steps</label>
+                        <input type="text" id="textureStepInput" class="form-control" value="1,9" placeholder="1,9">
+                        <span class="helper-text">Good for transitions, ghost layers, and low-volume movement.</span>
+                    </div>
+
+                    <div class="control-group step-grid-group">
+                        <div class="step-grid-header">
+                            <label class="form-label">Texture step toggles</label>
+                            <div class="sampler-actions">
+                                <button id="auditionTextureBtn" class="btn btn--secondary btn--sm" type="button">Audition</button>
+                                <button id="clearTextureBtn" class="btn btn--outline btn--sm" type="button">Clear Sample</button>
+                            </div>
+                        </div>
+                        <div id="textureStepGrid" class="step-grid" aria-label="Texture trigger steps"></div>
+                        <span class="helper-text">Use this lane for swells, noise tails, and reverse fragments around section changes.</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Texture sample start</label>
+                        <input type="range" id="textureStartSlider" min="0" max="95" value="0">
+                        <span class="effect-value">0%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Texture sample end</label>
+                        <input type="range" id="textureEndSlider" min="5" max="100" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Texture playback rate</label>
+                        <input type="range" id="textureRateSlider" min="50" max="150" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+
+                    <label class="toggle-chip" for="textureReverseToggle">
+                        <input type="checkbox" id="textureReverseToggle">
+                        <span>Reverse texture lane</span>
+                    </label>
+
+                    <div class="sample-upload">
+                        <label class="form-label" for="percSampleInput">Import percussion one-shot</label>
+                        <input type="file" id="percSampleInput" accept="audio/*">
+                        <p id="percStatus" class="sample-status">Using the built-in percussive click on steps 3, 7, 11, and 15.</p>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Perc trigger steps</label>
+                        <input type="text" id="percStepInput" class="form-control" value="3,7,11,15" placeholder="3,7,11,15">
+                        <span class="helper-text">Perfect for rides, claps, clicks, and off-grid motion.</span>
+                    </div>
+
+                    <div class="control-group step-grid-group">
+                        <div class="step-grid-header">
+                            <label class="form-label">Perc step toggles</label>
+                            <div class="sampler-actions">
+                                <button id="auditionPercBtn" class="btn btn--secondary btn--sm" type="button">Audition</button>
+                                <button id="clearPercBtn" class="btn btn--outline btn--sm" type="button">Clear Sample</button>
+                            </div>
+                        </div>
+                        <div id="percStepGrid" class="step-grid" aria-label="Percussion trigger steps"></div>
+                        <span class="helper-text">Build shaker ghosts, extra hats, and brittle one-shot percussion fills.</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Perc sample start</label>
+                        <input type="range" id="percStartSlider" min="0" max="95" value="0">
+                        <span class="effect-value">0%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Perc sample end</label>
+                        <input type="range" id="percEndSlider" min="5" max="100" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="form-label">Perc playback rate</label>
+                        <input type="range" id="percRateSlider" min="50" max="150" value="100">
+                        <span class="effect-value">100%</span>
+                    </div>
+
+                    <label class="toggle-chip" for="percReverseToggle">
+                        <input type="checkbox" id="percReverseToggle">
+                        <span>Reverse perc lane</span>
+                    </label>
                 </div>
+            </div>
+        </section>
+
+        <section class="sample-browser card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Sample + Clip Library</h3>
+                        <p class="helper-text">Keep track of the clips currently loaded into this session, then use the template browser to seed new lane ideas without shipping copyrighted audio.</p>
+                    </div>
+                </div>
+                <div id="clipLibraryList" class="clip-library-grid" aria-label="Loaded sample and clip library"></div>
+                <div class="sample-browser-toolbar">
+                    <input id="sampleBrowserSearch" class="form-control" type="search" placeholder="Search templates, moods, and lane ideas">
+                    <select id="sampleBrowserTargetLane" class="form-control">
+                        <option value="vocal">Apply to Vocal lane</option>
+                        <option value="fx">Apply to FX lane</option>
+                        <option value="texture">Apply to Texture lane</option>
+                        <option value="perc">Apply to Perc lane</option>
+                    </select>
+                </div>
+                <div id="sampleBrowserList" class="sample-browser-list" aria-label="Sample lane template browser"></div>
             </div>
         </section>
 
@@ -401,29 +731,90 @@
             <div class="card__body">
                 <div class="project-header">
                     <div>
-                        <h3>Example Library</h3>
-                        <p class="helper-text">Another Remix rescue: load a ready-made code sketch, then shape it with the Studio controls.</p>
+                        <h3>Factory Starting Points</h3>
+                        <p class="helper-text">Load a polished starting sketch, then push it into your own arrangement, samples, and code workflow.</p>
                     </div>
                 </div>
-                <div id="exampleLibraryList" class="example-library-list" aria-label="Example Strudel code library"></div>
+                <div id="exampleLibraryList" class="example-library-list" aria-label="Factory Strudel starting points"></div>
             </div>
         </section>
 
         <section class="code-section card">
             <div class="card__body">
                 <div class="code-header">
-                    <h3>Strudel Code</h3>
-                    <div class="code-controls">
-                        <button id="toggleCodeBtn" class="btn btn--secondary">Show Code</button>
+                    <div>
+                        <h3>Workspace</h3>
+                        <p class="helper-text workspace-helper">Switch between a click-first studio view and a split code workspace. The AI panel only talks to local endpoints.</p>
+                    </div>
+                    <div class="workspace-controls">
+                        <div class="layout-toggle-group">
+                            <button id="studioLayoutBtn" class="btn btn--secondary" type="button">Studio</button>
+                            <button id="splitLayoutBtn" class="btn btn--secondary" type="button">Split</button>
+                            <button id="codeLayoutBtn" class="btn btn--secondary" type="button">Code Focus</button>
+                        </div>
+                        <div class="code-controls">
+                            <button id="toggleCodeBtn" class="btn btn--secondary" type="button">Show Code</button>
+                            <button id="toggleAssistantBtn" class="btn btn--outline" type="button">Show AI</button>
+                        </div>
+                        <div class="code-controls">
                         <button id="updateCodeBtn" class="btn btn--primary code-control-btn">Update</button>
                         <button id="resetCodeBtn" class="btn btn--outline code-control-btn">Reset</button>
                         <button id="exportCodeBtn" class="btn btn--outline code-control-btn">Export</button>
+                        </div>
                     </div>
                 </div>
                 <div id="codeEditor" class="code-editor">
-                    <textarea id="strudelCode" class="code-textarea"></textarea>
-                    <div class="strudel-embed">
-                        <div id="strudelRepl"></div>
+                    <div class="workspace-shell">
+                        <div class="workspace-main">
+                            <textarea id="strudelCode" class="code-textarea"></textarea>
+                            <div class="strudel-embed">
+                                <div id="strudelRepl"></div>
+                            </div>
+                        </div>
+                        <aside id="assistantPanel" class="assistant-panel" aria-label="Local AI assistant">
+                            <div class="assistant-panel__header">
+                                <div>
+                                    <h4>Local AI Code Assistant</h4>
+                                    <p class="helper-text">Point this at a local OpenAI-compatible endpoint such as LM Studio or Ollama running on your machine.</p>
+                                </div>
+                                <div class="assistant-header-actions">
+                                    <button id="detectAssistantBtn" class="btn btn--outline btn--sm" type="button">Detect Local AI</button>
+                                    <button id="testAssistantBtn" class="btn btn--secondary btn--sm" type="button">Test Connection</button>
+                                    <button id="clearAssistantChatBtn" class="btn btn--outline btn--sm" type="button">Clear Chat</button>
+                                </div>
+                            </div>
+                            <div class="assistant-settings">
+                                <label class="assistant-field">
+                                    <span class="form-label">Local endpoint</span>
+                                    <input id="assistantEndpointInput" class="form-control" type="text" value="http://127.0.0.1:11434/v1" placeholder="http://127.0.0.1:11434/v1">
+                                </label>
+                                <label class="assistant-field">
+                                    <span class="form-label">Model</span>
+                                    <input id="assistantModelInput" class="form-control" type="text" value="local-model" placeholder="local-model">
+                                </label>
+                                <label class="assistant-field assistant-field--wide">
+                                    <span class="form-label">System prompt</span>
+                                    <textarea id="assistantSystemPrompt" class="form-control assistant-system-prompt">You are a local Strudel composition partner. Help shape rhythmic, melodic, and arrangement ideas. Prefer short practical explanations and working Strudel code blocks when useful. Return the useful final answer directly in plain text.</textarea>
+                                </label>
+                            </div>
+                            <div class="assistant-suggestions">
+                                <button class="btn btn--secondary btn--sm assistant-suggestion" type="button" data-prompt="Give me a darker four-bar variation of the current idea.">Darker variation</button>
+                                <button class="btn btn--secondary btn--sm assistant-suggestion" type="button" data-prompt="Make the groove more rave and more aggressive.">More rave</button>
+                                <button class="btn btn--secondary btn--sm assistant-suggestion" type="button" data-prompt="Explain what this current Strudel code is doing in plain English.">Explain code</button>
+                                <button class="btn btn--secondary btn--sm assistant-suggestion" type="button" data-prompt="Write a cleaner intro scene and a stronger build.">Intro + build</button>
+                            </div>
+                            <div id="assistantMessages" class="assistant-messages"></div>
+                            <div class="assistant-composer">
+                                <label class="assistant-field assistant-field--wide">
+                                    <span class="form-label">Ask the assistant</span>
+                                    <textarea id="assistantPromptInput" class="form-control assistant-prompt" placeholder="Ask for code changes, arrangement ideas, pattern edits, or plain-language help."></textarea>
+                                </label>
+                                <div class="assistant-composer__actions">
+                                    <span id="assistantStatus" class="assistant-status">Local endpoint idle.</span>
+                                    <button id="assistantSendBtn" class="btn btn--primary" type="button">Send</button>
+                                </div>
+                            </div>
+                        </aside>
                     </div>
                 </div>
             </div>
@@ -433,39 +824,81 @@
             <div class="card__body">
                 <div class="project-header">
                     <div>
-                        <h3>Project State</h3>
-                        <p class="helper-text">Save the current controls and code locally, or export a project file.</p>
+                        <h3>Project Shelf</h3>
+                        <p class="helper-text">Name the session, keep local snapshots with their sample settings, duplicate ideas, and move between drafts without losing the current groove.</p>
                     </div>
                     <div class="project-actions">
-                        <button id="saveProjectBtn" class="btn btn--secondary">Save Project</button>
-                        <button id="exportProjectBtn" class="btn btn--secondary">Export Project</button>
-                        <button id="importProjectBtn" class="btn btn--secondary">Import Project</button>
+                        <button id="newProjectBtn" class="btn btn--outline" type="button">New Project</button>
+                        <button id="duplicateProjectBtn" class="btn btn--outline" type="button">Duplicate</button>
+                        <button id="saveProjectBtn" class="btn btn--secondary" type="button">Save Snapshot</button>
+                        <button id="exportProjectBtn" class="btn btn--secondary" type="button">Export Project</button>
+                        <button id="importProjectBtn" class="btn btn--secondary" type="button">Import Project</button>
                         <input type="file" id="importProjectInput" accept="application/json" hidden>
                     </div>
                 </div>
+                <div class="project-meta-grid">
+                    <label class="project-meta-field">
+                        <span class="form-label">Project name</span>
+                        <input id="projectNameInput" class="form-control" type="text" value="Untitled Session" placeholder="Untitled Session">
+                    </label>
+                    <label class="project-meta-field">
+                        <span class="form-label">Session key</span>
+                        <input id="projectKeyInput" class="form-control" type="text" value="C#/Db major" placeholder="C#/Db major">
+                    </label>
+                    <label class="project-meta-field">
+                        <span class="form-label">Session tempo</span>
+                        <input id="projectTempoInput" class="form-control" type="number" min="100" max="160" value="131">
+                    </label>
+                    <label class="project-meta-field project-meta-field--wide">
+                        <span class="form-label">Notes</span>
+                        <textarea id="projectNotesInput" class="form-control" placeholder="Describe the direction, sample choices, or what the next pass should improve."></textarea>
+                    </label>
+                </div>
+                <div id="projectLibraryList" class="project-library-list" aria-label="Saved local project snapshots"></div>
+            </div>
+        </section>
+
+        <section class="export-panel card">
+            <div class="card__body">
+                <div class="project-header">
+                    <div>
+                        <h3>Export Dock</h3>
+                        <p class="helper-text">Copy or download the clean session JSON here. Use “Export Project” above when you want the full package with embedded lane audio.</p>
+                    </div>
+                    <div class="project-actions">
+                        <button id="refreshExportJsonBtn" class="btn btn--outline" type="button">Refresh JSON</button>
+                        <button id="copyProjectJsonBtn" class="btn btn--secondary" type="button">Copy JSON</button>
+                        <button id="downloadProjectJsonBtn" class="btn btn--secondary" type="button">Download JSON</button>
+                    </div>
+                </div>
+                <label class="project-meta-field project-meta-field--wide">
+                    <span class="form-label">Session JSON</span>
+                    <textarea id="exportJsonTextarea" class="form-control export-json-textarea" readonly></textarea>
+                </label>
             </div>
         </section>
 
         <section class="info-panel card">
             <div class="card__body">
-                <h3>About This Studio Build</h3>
+                <h3>Studio Notes</h3>
                 <p>
-                    This version uses Strudel's web-audio package directly, so the large Play button evaluates the
-                    code in this page and starts sound from the same click gesture while still leaving room for sample,
-                    scene, and arrangement controls on top.
+                    Play starts the built-in local Web Audio engine. The code editor and Strudel panel still matter for
+                    exporting, sketching, and local AI-assisted editing, but audible playback does not depend on the
+                    external Strudel runtime succeeding.
                 </p>
                 <div class="instructions">
-                    <h4>How to Use:</h4>
+                    <h4>Reality Check:</h4>
                     <ul>
-                        <li>Click the large Play button to start the track</li>
-                        <li>Use individual track controls to mute or rebalance the generated default arrangement</li>
-                        <li>Modify global tempo and effects in real-time</li>
-                        <li>Click "Show Code" to view or edit the Strudel code</li>
-                        <li>Use "Update" after editing code to re-evaluate it live</li>
+                        <li>Use Audio Check if the studio appears silent and you need to verify browser or speaker output quickly.</li>
+                        <li>Built-in lane sounds are factory starter layers, not disposable demo placeholders.</li>
+                        <li>The arrangement can be edited numerically and also manipulated directly in the timeline.</li>
+                        <li>Update validates and exports the current code path, while the local engine remains the dependable playback path.</li>
                     </ul>
                 </div>
             </div>
         </section>
+
+        </div>
 
         <footer class="site-footer">
             <p>&copy; 2026 Kol Tregaskes. All rights reserved.</p>
