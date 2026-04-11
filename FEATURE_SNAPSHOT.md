@@ -1,7 +1,7 @@
 # Strudel Studio Feature Snapshot
 
-Date: 2026-04-09
-Project snapshot schema: `version: 5`
+Date: 2026-04-11
+Project snapshot schema: `version: 6`
 Purpose: repo-tracked baseline for shipped controls, views, and behaviors so future audits can confirm nothing was silently removed.
 
 ## Workspace Views
@@ -52,7 +52,7 @@ Purpose: repo-tracked baseline for shipped controls, views, and behaviors so fut
 - Project persistence:
   - Draft autosave in local storage
   - Snapshot shelf in IndexedDB
-  - Portable project JSON with embedded sample assets
+  - Portable project JSON with embedded lane and vault sample assets
 
 ## Transport and Diagnostics
 - `Play`
@@ -174,6 +174,12 @@ Purpose: repo-tracked baseline for shipped controls, views, and behaviors so fut
   - `Audition`
   - `Aim Browser`
   - `Clear Lane`
+- Project Clip Vault controls:
+  - Auto-bank imported lane audio into the current project
+  - Target lane selector for vault reloads
+  - `Preview`
+  - `Load to ... lane`
+  - `Delete`
 - Sample browser controls:
   - Search
   - Lane targeting
@@ -233,6 +239,7 @@ Purpose: repo-tracked baseline for shipped controls, views, and behaviors so fut
   - Sample-browser template presets
 - User-owned content:
   - Imported lane audio files
+  - Project Clip Vault entries
   - Session metadata
   - Arrangement edits
   - Pattern rack snapshots
@@ -245,4 +252,5 @@ Purpose: repo-tracked baseline for shipped controls, views, and behaviors so fut
 - The built-in Web Audio engine is the main transport playback path.
 - The Strudel code panel remains available for code experiments, exporting, and AI-assisted editing.
 - The local AI panel is restricted to localhost-style endpoints.
+- Imported raw audio is guaranteed through snapshot saves and exported project packages; draft autosave preserves the project state metadata but should not be treated as the only audio backup.
 - No visible control in the shipped interface should be decorative-only; buttons are expected to have a real action or an intentional disabled state.

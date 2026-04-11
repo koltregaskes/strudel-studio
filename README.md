@@ -14,7 +14,7 @@ Strudel Studio is a click-first browser music studio with a programmable Strudel
 - Beat Designer for kick, snare, and hats, plus quick groove-action buttons and sequencing utilities
 - Mixer with mute, solo, pan, and level controls
 - Four sample lanes: vocal, FX, texture, and perc one-shots
-- Sample + Clip Library for loaded lane assets, lane targeting, auditioning, and cleanup
+- Sample + Clip Library for loaded lane assets, lane targeting, auditioning, cleanup, and a reusable Project Clip Vault
 - Licensing-aware sample browser that ships templates, not copyrighted audio
 - Audio diagnostics with meter activity, warning states, and a direct `Audio Check` trigger
 - Split-screen and code-focus workspace layouts
@@ -37,5 +37,6 @@ Strudel Studio is a click-first browser music studio with a programmable Strudel
 - Native desktop or native Android wrappers can be evaluated later if the PWA path proves too limiting
 
 ## Manager Visibility
-- Current status for the Tools Manager lives in `RELEASE_STATUS.md`.
+- Current manager-facing status lives in `TOOLS-MANAGER-STATUS.md`.
+- Release-facing status lives in `RELEASE_STATUS.md`.
 - The shipped feature baseline lives in `FEATURE_SNAPSHOT.md`.

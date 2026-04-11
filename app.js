@@ -1082,6 +1082,7 @@ arrange(
             texture: this.createEmptySampleLaneState(),
             perc: this.createEmptySampleLaneState()
         };
+        this.projectClipBank = [];
 
         this.projectMeta = this.createDefaultProjectMeta();
         this.projectPatterns = [];
@@ -1099,6 +1100,7 @@ arrange(
         this.diagnosticsInterval = null;
         this.arrangementInteraction = null;
         this.draggedArrangementSectionId = null;
+        this.maxProjectClipBankEntries = 32;
         this.maxAssistantMessages = 12;
         this.maxAssistantMessageLength = 4000;
 
@@ -1310,6 +1312,8 @@ arrange(
             sampleBrowserTargetLane: document.getElementById('sampleBrowserTargetLane'),
             sampleBrowserList: document.getElementById('sampleBrowserList'),
             clipLibraryList: document.getElementById('clipLibraryList'),
+            clipBankTargetLane: document.getElementById('clipBankTargetLane'),
+            clipBankList: document.getElementById('clipBankList'),
             capturePatternBtn: document.getElementById('capturePatternBtn'),
             patternRackList: document.getElementById('patternRackList'),
             newProjectBtn: document.getElementById('newProjectBtn'),
@@ -2207,6 +2211,154 @@ arrange(
         );
     }
 
+    getLaneSequenceSteps(laneId) {
+        const key = this.getSequenceConfigKey(laneId);
+        return Array.isArray(this.sequenceConfig[key]) ? [...this.sequenceConfig[key]] : [];
+    }
+
+    normalizeProjectClipSuggestedSettings(settings = {}, fallbackLaneId = 'vocal') {
+        const startValue = Number.parseFloat(settings.start);
+        const endValue = Number.parseFloat(settings.end);
+        const rateValue = Number.parseFloat(settings.rate);
+        const steps = this.normalizeStepSequence(
+            Array.isArray(settings.steps) ? settings.steps : this.getLaneSequenceSteps(fallbackLaneId)
+        );
+        const start = Number.isFinite(startValue) ? Math.max(0, Math.min(0.95, startValue)) : 0;
+        const proposedEnd = Number.isFinite(endValue) ? endValue : 1;
+        const end = Math.max(start + 0.05, Math.min(1, proposedEnd));
+        const rate = Number.isFinite(rateValue) ? Math.max(0.5, Math.min(1.5, rateValue)) : 1;
+
+        return {
+            steps,
+            start,
+            end,
+            rate,
+            reverse: Boolean(settings.reverse)
+        };
+    }
+
+    createProjectClipBankEntry(entry = {}) {
+        const now = new Date().toISOString();
+        const blob = entry.blob || null;
+        const sourceLaneId = ['vocal', 'fx', 'texture', 'perc'].includes(entry.sourceLaneId) ? entry.sourceLaneId : 'vocal';
+        const mimeType = typeof entry.mimeType === 'string' && entry.mimeType
+            ? entry.mimeType
+            : (blob?.type || '');
+        const size = Number.isFinite(Number(entry.size)) ? Number(entry.size) : (blob?.size || 0);
+        const createdAt = typeof entry.createdAt === 'string' && entry.createdAt ? entry.createdAt : now;
+        const updatedAt = typeof entry.updatedAt === 'string' && entry.updatedAt ? entry.updatedAt : createdAt;
+
+        return {
+            id: typeof entry.id === 'string' && entry.id ? entry.id : `clip-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+            fileName: typeof entry.fileName === 'string' && entry.fileName ? entry.fileName : 'Imported Clip',
+            mimeType,
+            size,
+            sourceLaneId,
+            createdAt,
+            updatedAt,
+            blob,
+            suggestedSettings: this.normalizeProjectClipSuggestedSettings(entry.suggestedSettings, sourceLaneId)
+        };
+    }
+
+    normalizeProjectClipBank(clipBank = [], clipAssets = {}) {
+        if (!Array.isArray(clipBank)) {
+            return [];
+        }
+
+        return clipBank
+            .map((entry) => {
+                if (!entry || typeof entry !== 'object') {
+                    return null;
+                }
+
+                return this.createProjectClipBankEntry({
+                    ...entry,
+                    blob: clipAssets[entry.id] || entry.blob || null
+                });
+            })
+            .filter(Boolean)
+            .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
+    }
+
+    serializeProjectClipBankEntry(entry) {
+        return {
+            id: entry.id,
+            fileName: entry.fileName,
+            mimeType: entry.mimeType,
+            size: entry.size,
+            sourceLaneId: entry.sourceLaneId,
+            createdAt: entry.createdAt,
+            updatedAt: entry.updatedAt,
+            suggestedSettings: {
+                ...entry.suggestedSettings,
+                steps: [...entry.suggestedSettings.steps]
+            }
+        };
+    }
+
+    getProjectClipBankSignature(value) {
+        const fileName = typeof value?.fileName === 'string' ? value.fileName.toLowerCase() : '';
+        const mimeType = typeof value?.mimeType === 'string' ? value.mimeType.toLowerCase() : '';
+        const size = Number(value?.size || value?.blob?.size || 0);
+        return `${fileName}::${mimeType}::${size}`;
+    }
+
+    upsertProjectClipBankFromLane(laneId, options = {}) {
+        const lane = this.sampleState[laneId];
+        if (!lane?.blob) {
+            return null;
+        }
+
+        const signature = this.getProjectClipBankSignature({
+            fileName: lane.fileName,
+            mimeType: lane.mimeType || lane.blob.type || '',
+            size: lane.blob.size || 0
+        });
+        const now = new Date().toISOString();
+        const existing = this.projectClipBank.find((entry) => entry.id === options.preferredId)
+            || (!options.forceNew
+                ? this.projectClipBank.find((entry) => this.getProjectClipBankSignature(entry) === signature)
+                : null);
+
+        const nextEntry = this.createProjectClipBankEntry({
+            id: existing?.id || options.preferredId,
+            fileName: lane.fileName || `${this.getLaneLabel(laneId)} Clip`,
+            mimeType: lane.mimeType || lane.blob.type || '',
+            size: lane.blob.size || existing?.size || 0,
+            sourceLaneId: laneId,
+            createdAt: existing?.createdAt || now,
+            updatedAt: now,
+            blob: lane.blob,
+            suggestedSettings: {
+                ...this.serializeSampleLaneSettings(laneId),
+                steps: this.getLaneSequenceSteps(laneId)
+            }
+        });
+
+        this.projectClipBank = [
+            nextEntry,
+            ...this.projectClipBank.filter((entry) => entry.id !== nextEntry.id)
+        ]
+            .sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt))
+            .slice(0, this.maxProjectClipBankEntries);
+
+        return nextEntry;
+    }
+
+    formatClipSize(bytes) {
+        const value = Number(bytes);
+        if (!Number.isFinite(value) || value <= 0) {
+            return 'Size unavailable';
+        }
+
+        if (value >= 1024 * 1024) {
+            return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        return `${Math.max(1, Math.round(value / 1024))} KB`;
+    }
+
     normalizeSequenceConfig(sequenceConfig = {}) {
         const defaults = this.createDefaultSequenceConfig();
         return Object.fromEntries(
@@ -2292,15 +2444,54 @@ arrange(
         });
     }
 
+    getProjectClipInventoryCount() {
+        const signatures = new Set(
+            this.projectClipBank.map((entry) => this.getProjectClipBankSignature(entry))
+        );
+
+        this.getLoadedClipEntries()
+            .filter((entry) => entry.loaded)
+            .forEach((entry) => {
+                const lane = this.sampleState[entry.laneId];
+                signatures.add(this.getProjectClipBankSignature({
+                    fileName: entry.fileName,
+                    mimeType: lane?.mimeType || '',
+                    size: lane?.blob?.size || 0
+                }));
+            });
+
+        return signatures.size;
+    }
+
     buildSessionSampleSummary() {
         const loadedEntries = this.getLoadedClipEntries().filter((entry) => entry.loaded);
-        if (!loadedEntries.length) {
+        const restoredClipCount = this.projectClipBank.filter((entry) => entry.blob).length;
+        const metadataOnlyCount = this.projectClipBank.length - restoredClipCount;
+
+        if (!loadedEntries.length && !this.projectClipBank.length) {
             return 'No imported clips yet. Use the lane importers or the template browser to seed this session.';
         }
 
-        return loadedEntries
-            .map((entry) => `${entry.label}: ${entry.fileName || 'loaded clip'} on ${entry.steps}`)
-            .join(' | ');
+        const summaryParts = [];
+
+        if (loadedEntries.length) {
+            summaryParts.push(
+                loadedEntries
+                    .map((entry) => `${entry.label}: ${entry.fileName || 'loaded clip'} on ${entry.steps}`)
+                    .join(' | ')
+            );
+        }
+
+        if (this.projectClipBank.length) {
+            const bankSummary = `${restoredClipCount} reusable clip${restoredClipCount === 1 ? '' : 's'} in the project vault`;
+            summaryParts.push(
+                metadataOnlyCount > 0
+                    ? `${bankSummary}; ${metadataOnlyCount} metadata-only until a snapshot or project package restores the audio.`
+                    : `${bankSummary}.`
+            );
+        }
+
+        return summaryParts.join(' | ');
     }
 
     renderSessionOverview() {
@@ -2312,7 +2503,7 @@ arrange(
         this.dom.sessionTempoMeta.textContent = String(this.globalEffects.tempo);
         this.dom.sessionKeyMeta.textContent = this.projectMeta.key || 'Set a key';
         this.dom.sessionPatternCountMeta.textContent = String(this.projectPatterns.length);
-        this.dom.sessionClipCountMeta.textContent = String(this.getLoadedClipEntries().filter((entry) => entry.loaded).length);
+        this.dom.sessionClipCountMeta.textContent = String(this.getProjectClipInventoryCount());
         this.dom.sessionNotesSummary.textContent = this.projectMeta.notes
             ? this.projectMeta.notes
             : `Arrangement holds ${this.arrangement.length} sections. Capture pattern snapshots as the session develops.`;
@@ -2599,6 +2790,148 @@ arrange(
         actions[laneId]?.();
     }
 
+    async previewProjectClipBankEntry(entryId) {
+        const entry = this.projectClipBank.find((candidate) => candidate.id === entryId);
+        if (!entry?.blob) {
+            throw new Error('That clip entry only has metadata right now. Reload a saved snapshot or import a packaged project to restore the audio.');
+        }
+
+        await this.engine.ensureAudioContext();
+        const arrayBuffer = await entry.blob.arrayBuffer();
+        const decoded = await this.engine.audioContext.decodeAudioData(arrayBuffer.slice(0));
+        const source = this.engine.audioContext.createBufferSource();
+        const gain = this.engine.audioContext.createGain();
+        const duration = Math.min(2.4, Math.max(0.18, decoded.duration * 0.35));
+        const startTime = this.engine.audioContext.currentTime + 0.02;
+
+        source.buffer = decoded;
+        gain.gain.value = 0.52;
+        source.connect(gain);
+        gain.connect(this.engine.masterGain);
+        source.start(startTime, 0, duration);
+        this.engine.registerNode(source, startTime + duration + 0.03);
+        this.renderStrudelStatus(`Previewing ${entry.fileName} from the project clip vault.`, 'ready');
+    }
+
+    async loadProjectClipBankEntryToLane(entryId, laneId = this.dom.clipBankTargetLane?.value || 'vocal') {
+        const entry = this.projectClipBank.find((candidate) => candidate.id === entryId);
+        if (!entry?.blob) {
+            throw new Error('That clip entry only has metadata right now. Reload a saved snapshot or import a packaged project to restore the audio.');
+        }
+
+        const targetLane = ['vocal', 'fx', 'texture', 'perc'].includes(laneId) ? laneId : 'vocal';
+        const settings = this.normalizeProjectClipSuggestedSettings(entry.suggestedSettings, targetLane);
+
+        this.sampleState[targetLane] = {
+            ...this.createEmptySampleLaneState(),
+            fileName: entry.fileName,
+            mimeType: entry.mimeType || entry.blob.type || '',
+            blob: entry.blob,
+            start: settings.start,
+            end: settings.end,
+            rate: settings.rate,
+            reverse: settings.reverse
+        };
+        this.sequenceConfig[this.getSequenceConfigKey(targetLane)] = [...settings.steps];
+
+        await this.decodeSampleBlobForLane(targetLane);
+        entry.updatedAt = new Date().toISOString();
+        this.projectClipBank = this.normalizeProjectClipBank(this.projectClipBank);
+        this.syncDomFromState();
+        this.updateEffectDisplays();
+        this.updateLaneStatus(targetLane);
+        this.markSceneCustom();
+        this.syncDefaultCodeFromControls();
+        this.persistProject();
+        this.showNotification(`${entry.fileName} loaded into the ${this.getLaneLabel(targetLane).toLowerCase()} lane.`, 'success');
+    }
+
+    removeProjectClipBankEntry(entryId) {
+        const entry = this.projectClipBank.find((candidate) => candidate.id === entryId);
+        this.projectClipBank = this.projectClipBank.filter((candidate) => candidate.id !== entryId);
+        this.renderProjectClipBank();
+        this.queueExportPanelRefresh();
+        this.persistProject();
+        this.showNotification(`${entry?.fileName || 'Clip'} removed from the project vault.`, 'info');
+    }
+
+    renderProjectClipBank() {
+        if (!this.dom.clipBankList) {
+            return;
+        }
+
+        this.dom.clipBankList.replaceChildren();
+
+        if (!this.projectClipBank.length) {
+            const helper = document.createElement('p');
+            helper.className = 'helper-text';
+            helper.textContent = 'Imported clips you want to keep reusable across the project will appear here.';
+            this.dom.clipBankList.appendChild(helper);
+            return;
+        }
+
+        const targetLane = this.dom.clipBankTargetLane?.value || 'vocal';
+        const targetLaneLabel = this.getLaneLabel(targetLane);
+
+        this.projectClipBank.forEach((entry) => {
+            const card = document.createElement('article');
+            card.className = 'clip-library-card clip-bank-card';
+
+            const header = document.createElement('div');
+            header.className = 'clip-library-card__header';
+
+            const titleWrap = document.createElement('div');
+            const title = document.createElement('h4');
+            title.textContent = entry.fileName || 'Imported Clip';
+            const summary = document.createElement('p');
+            summary.textContent = entry.blob
+                ? `Saved from the ${this.getLaneLabel(entry.sourceLaneId).toLowerCase()} lane and ready to reload anywhere in this project.`
+                : 'Metadata restored, but the raw audio is not attached yet. Reload a saved snapshot or import a packaged project to bring it back.';
+            titleWrap.append(title, summary);
+
+            const status = document.createElement('span');
+            status.className = `clip-library-card__status${entry.blob ? '' : ' is-empty'}`;
+            status.textContent = entry.blob ? 'Project Vault' : 'Metadata Only';
+            header.append(titleWrap, status);
+
+            const details = document.createElement('div');
+            details.className = 'clip-library-card__details';
+            const settings = entry.suggestedSettings;
+            const steps = document.createElement('p');
+            steps.textContent = `Suggested steps: ${settings.steps.join(', ') || 'none'}`;
+            const slice = document.createElement('p');
+            slice.textContent = `Slice ${Math.round(settings.start * 100)}% to ${Math.round(settings.end * 100)}% | Rate ${Math.round(settings.rate * 100)}%${settings.reverse ? ' | Reverse' : ''}`;
+            const meta = document.createElement('p');
+            meta.textContent = `${this.formatClipSize(entry.size)} | Updated ${new Date(entry.updatedAt).toLocaleString()}`;
+            details.append(steps, slice, meta);
+
+            const actions = document.createElement('div');
+            actions.className = 'clip-library-card__actions';
+            const previewButton = this.createAssistantActionButton('Preview', 'btn btn--secondary btn--sm', () => {
+                this.previewProjectClipBankEntry(entry.id).catch((error) => {
+                    this.showNotification(`Vault preview failed: ${error.message}`, 'error');
+                });
+            });
+            const loadButton = this.createAssistantActionButton(`Load to ${targetLaneLabel}`, 'btn btn--outline btn--sm', () => {
+                this.loadProjectClipBankEntryToLane(entry.id, targetLane).catch((error) => {
+                    this.showNotification(`Vault load failed: ${error.message}`, 'error');
+                });
+            });
+            const deleteButton = this.createAssistantActionButton('Delete', 'btn btn--outline btn--sm', () => this.removeProjectClipBankEntry(entry.id));
+
+            if (!entry.blob) {
+                previewButton.disabled = true;
+                previewButton.title = 'Audio is not attached to this metadata entry yet.';
+                loadButton.disabled = true;
+                loadButton.title = 'Audio is not attached to this metadata entry yet.';
+            }
+
+            actions.append(previewButton, loadButton, deleteButton);
+            card.append(header, details, actions);
+            this.dom.clipBankList.appendChild(card);
+        });
+    }
+
     renderClipLibrary() {
         if (!this.dom.clipLibraryList) {
             return;
@@ -2651,6 +2984,7 @@ arrange(
             this.dom.clipLibraryList.appendChild(card);
         });
 
+        this.renderProjectClipBank();
         this.renderSessionOverview();
     }
 
@@ -2705,14 +3039,22 @@ arrange(
             key: this.projectMeta.key,
             tempo: snapshot.globalEffects.tempo,
             patternCount: (snapshot.projectPatterns || []).length,
+            clipBankCount: (snapshot.projectClipBank || []).length,
             createdAt: this.projectMeta.createdAt,
             updatedAt: snapshot.projectMeta.updatedAt,
             snapshot,
             sampleAssets: {
-                vocal: this.sampleState.vocal.blob || null,
-                fx: this.sampleState.fx.blob || null,
-                texture: this.sampleState.texture.blob || null,
-                perc: this.sampleState.perc.blob || null
+                lanes: {
+                    vocal: this.sampleState.vocal.blob || null,
+                    fx: this.sampleState.fx.blob || null,
+                    texture: this.sampleState.texture.blob || null,
+                    perc: this.sampleState.perc.blob || null
+                },
+                clipBank: Object.fromEntries(
+                    this.projectClipBank
+                        .filter((entry) => entry.blob)
+                        .map((entry) => ([entry.id, entry.blob]))
+                )
             }
         };
     }
@@ -2747,6 +3089,7 @@ arrange(
                     <div class="project-library-card__meta">
                         <span>${this.escapeHtml(record.key || record.snapshot?.projectMeta?.key || 'No key')} | ${record.tempo || record.snapshot?.globalEffects?.tempo || this.globalEffects.tempo} BPM</span>
                         <span>${record.patternCount || record.snapshot?.projectPatterns?.length || 0} patterns</span>
+                        <span>${record.clipBankCount || record.snapshot?.projectClipBank?.length || 0} vault clips</span>
                         <span>Updated ${new Date(record.updatedAt).toLocaleString()}</span>
                     </div>
                 </div>
@@ -2784,12 +3127,19 @@ arrange(
         this.applyProjectSampleAssets(record.sampleAssets || {});
         this.persistProject();
         this.showNotification(`Loaded ${record.name}.`, 'success');
-        this.renderStrudelStatus(`Loaded snapshot "${record.name}". Any saved sample files are now attached to the matching lanes.`, 'ready');
+        this.renderStrudelStatus(`Loaded snapshot "${record.name}". Saved lane audio and project vault clips are now attached where available.`, 'ready');
     }
 
     applyProjectSampleAssets(sampleAssets = {}) {
+        const laneAssets = sampleAssets.lanes || {
+            vocal: sampleAssets.vocal || null,
+            fx: sampleAssets.fx || null,
+            texture: sampleAssets.texture || null,
+            perc: sampleAssets.perc || null
+        };
+
         ['vocal', 'fx', 'texture', 'perc'].forEach((laneId) => {
-            const blob = sampleAssets[laneId] || null;
+            const blob = laneAssets[laneId] || null;
             if (blob) {
                 this.sampleState[laneId].blob = blob;
                 this.sampleState[laneId].buffer = null;
@@ -2797,6 +3147,7 @@ arrange(
                 this.sampleState[laneId].mimeType = blob.type || this.sampleState[laneId].mimeType;
             }
         });
+        this.projectClipBank = this.normalizeProjectClipBank(this.projectClipBank, sampleAssets.clipBank || {});
 
         this.updateSampleStatus();
         this.updateFxStatus();
@@ -2825,6 +3176,7 @@ arrange(
             texture: this.createEmptySampleLaneState(),
             perc: this.createEmptySampleLaneState()
         };
+        this.projectClipBank = [];
         this.arrangement = this.createDefaultArrangement();
         this.projectPatterns = [];
         this.activeScene = 'main';
@@ -4019,7 +4371,7 @@ ${prompt}`;
 
     serializeProject() {
         return {
-            version: 5,
+            version: 6,
             projectMeta: {
                 ...this.projectMeta,
                 updatedAt: new Date().toISOString()
@@ -4060,6 +4412,7 @@ ${prompt}`;
                 texture: this.serializeSampleLaneSettings('texture'),
                 perc: this.serializeSampleLaneSettings('perc')
             },
+            projectClipBank: this.projectClipBank.map((entry) => this.serializeProjectClipBankEntry(entry)),
             assistantMessages: this.normalizeAssistantMessages(this.assistantMessages),
             assistantPromptDraft: this.dom.assistantPromptInput.value,
             customCode: this.dom.codeTextarea.value,
@@ -4149,6 +4502,9 @@ ${prompt}`;
                 };
             }
         });
+        this.projectClipBank = Array.isArray(project.projectClipBank)
+            ? this.normalizeProjectClipBank(project.projectClipBank)
+            : [];
 
         if (typeof project.workspaceLayout === 'string') {
             this.workspaceLayout = project.workspaceLayout;
@@ -4309,13 +4665,14 @@ ${prompt}`;
         };
 
         await this.decodeSampleBlobForLane(laneId);
+        this.upsertProjectClipBankFromLane(laneId);
         this.syncDomFromState();
         this.updateEffectDisplays();
         this.updateLaneStatus(laneId);
         this.markSceneCustom();
         this.syncDefaultCodeFromControls();
         this.persistProject();
-        this.showNotification(`Loaded ${this.getLaneLabel(laneId)} sample: ${file.name}`, 'success');
+        this.showNotification(`Loaded ${this.getLaneLabel(laneId)} sample: ${file.name}. Added to the project clip vault.`, 'success');
     }
 
     async handleVocalSampleFile(file) {
@@ -4756,13 +5113,25 @@ ${prompt}`;
 
     async exportProject() {
         const project = this.serializeProject();
-        const sampleAssets = {};
+        const sampleAssets = {
+            lanes: {},
+            clipBank: {}
+        };
 
         for (const laneId of ['vocal', 'fx', 'texture', 'perc']) {
             if (this.sampleState[laneId].blob) {
                 // eslint-disable-next-line no-await-in-loop
-                sampleAssets[laneId] = await this.blobToDataUrl(this.sampleState[laneId].blob);
+                sampleAssets.lanes[laneId] = await this.blobToDataUrl(this.sampleState[laneId].blob);
             }
+        }
+
+        for (const entry of this.projectClipBank) {
+            if (!entry.blob) {
+                continue;
+            }
+
+            // eslint-disable-next-line no-await-in-loop
+            sampleAssets.clipBank[entry.id] = await this.blobToDataUrl(entry.blob);
         }
 
         const exportPayload = {
@@ -4787,26 +5156,36 @@ ${prompt}`;
         const project = JSON.parse(text);
         this.applyProject(project);
         if (project.sampleAssets) {
+            const sampleAssets = {
+                lanes: {},
+                clipBank: {}
+            };
+            const laneAssets = project.sampleAssets.lanes || project.sampleAssets;
+
             for (const laneId of ['vocal', 'fx', 'texture', 'perc']) {
-                const dataUrl = project.sampleAssets[laneId];
+                const dataUrl = laneAssets[laneId];
                 if (!dataUrl) {
                     continue;
                 }
 
                 // eslint-disable-next-line no-await-in-loop
-                const blob = await this.dataUrlToBlob(dataUrl);
-                this.sampleState[laneId].blob = blob;
-                this.sampleState[laneId].buffer = null;
-                this.sampleState[laneId].reverseBuffer = null;
+                sampleAssets.lanes[laneId] = await this.dataUrlToBlob(dataUrl);
             }
-            this.updateSampleStatus();
-            this.updateFxStatus();
-            this.updateTextureStatus();
-            this.updatePercStatus();
+
+            for (const [entryId, dataUrl] of Object.entries(project.sampleAssets.clipBank || {})) {
+                if (!dataUrl) {
+                    continue;
+                }
+
+                // eslint-disable-next-line no-await-in-loop
+                sampleAssets.clipBank[entryId] = await this.dataUrlToBlob(dataUrl);
+            }
+
+            this.applyProjectSampleAssets(sampleAssets);
         }
         this.persistProject();
         this.showNotification('Project imported.', 'success');
-        this.renderStrudelStatus('Project imported. Embedded sample lanes were restored if they were included in the file.', 'info');
+        this.renderStrudelStatus('Project imported. Embedded lane audio and project vault clips were restored if they were included in the file.', 'info');
     }
 
     setupEventListeners() {
@@ -5162,6 +5541,7 @@ ${prompt}`;
 
         this.dom.sampleBrowserSearch.addEventListener('input', () => this.renderSampleBrowser());
         this.dom.sampleBrowserTargetLane.addEventListener('change', () => this.renderSampleBrowser());
+        this.dom.clipBankTargetLane?.addEventListener('change', () => this.renderProjectClipBank());
 
         this.dom.newProjectBtn.addEventListener('click', () => this.newProject());
         this.dom.duplicateProjectBtn.addEventListener('click', () => {

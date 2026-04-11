@@ -670,10 +670,23 @@
                 <div class="project-header">
                     <div>
                         <h3>Sample + Clip Library</h3>
-                        <p class="helper-text">Keep track of the clips currently loaded into this session, then use the template browser to seed new lane ideas without shipping copyrighted audio.</p>
+                        <p class="helper-text">Keep track of the clips currently loaded into this session, bank reusable project clips, then use the template browser to seed new lane ideas without shipping copyrighted audio.</p>
                     </div>
                 </div>
                 <div id="clipLibraryList" class="clip-library-grid" aria-label="Loaded sample and clip library"></div>
+                <div class="sample-browser-toolbar sample-browser-toolbar--stacked">
+                    <div>
+                        <span class="form-label">Project Clip Vault</span>
+                        <p class="helper-text">Imported clips are banked here so you can preview them, reload them into any lane, and carry them inside saved snapshots and exported project packages.</p>
+                    </div>
+                    <select id="clipBankTargetLane" class="form-control">
+                        <option value="vocal">Load into Vocal lane</option>
+                        <option value="fx">Load into FX lane</option>
+                        <option value="texture">Load into Texture lane</option>
+                        <option value="perc">Load into Perc lane</option>
+                    </select>
+                </div>
+                <div id="clipBankList" class="clip-bank-list" aria-label="Project clip vault"></div>
                 <div class="sample-browser-toolbar">
                     <input id="sampleBrowserSearch" class="form-control" type="search" placeholder="Search templates, moods, and lane ideas">
                     <select id="sampleBrowserTargetLane" class="form-control">

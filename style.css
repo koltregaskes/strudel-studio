@@ -1687,6 +1687,10 @@ body {
   margin-bottom: var(--space-16);
 }
 
+.sample-browser-toolbar--stacked {
+  align-items: end;
+}
+
 .sample-browser-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1694,6 +1698,7 @@ body {
 }
 
 .clip-library-grid,
+.clip-bank-list,
 .pattern-rack-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -1790,6 +1795,11 @@ body {
 .clip-library-card__status.is-empty {
   background: rgba(255, 255, 255, 0.08);
   color: rgba(240, 248, 255, 0.62);
+}
+
+.clip-bank-card {
+  border-color: rgba(86, 201, 255, 0.18);
+  box-shadow: 0 18px 28px rgba(8, 16, 34, 0.22);
 }
 
 .pattern-card__name {
@@ -2412,6 +2422,7 @@ body.shell-ready {
 }
 
 .app-container[data-shell-ready="true"] .simple-shell .sample-browser-toolbar,
+.app-container[data-shell-ready="true"] .simple-shell .clip-bank-list,
 .app-container[data-shell-ready="true"] .simple-shell .sampler-grid,
 .app-container[data-shell-ready="true"] .simple-shell .clip-library-grid,
 .app-container[data-shell-ready="true"] .simple-shell .pattern-rack-list,
