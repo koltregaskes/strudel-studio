@@ -82,8 +82,9 @@ These are the few things automation cannot fully prove:
 If you want the shortest practical review:
 
 1. Run `scripts\run-release-smoke.cmd`.
-2. Manually confirm you can hear sound.
-3. Manually confirm the app installs normally as a PWA.
-4. Optionally confirm local AI if you want that included in review.
+2. Open the in-app `Release Readiness` panel and copy the review brief if you want a reviewer handoff summary.
+3. Manually confirm you can hear sound.
+4. Manually confirm the app installs normally as a PWA.
+5. Optionally confirm local AI if you want that included in review.
 
 If those pass, we are in strong shape for review.

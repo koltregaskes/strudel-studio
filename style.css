@@ -1813,6 +1813,102 @@ body {
   line-height: 1.5;
 }
 
+.release-readiness {
+  margin-top: var(--space-12);
+  padding: var(--space-18);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(86, 201, 255, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(86, 201, 255, 0.18), transparent 42%),
+    linear-gradient(180deg, rgba(6, 12, 24, 0.92), rgba(11, 18, 34, 0.78));
+  box-shadow: 0 18px 28px rgba(8, 16, 34, 0.18);
+}
+
+.release-readiness__header,
+.release-readiness__actions,
+.release-readiness-card__header,
+.release-readiness-item {
+  display: flex;
+  gap: var(--space-12);
+}
+
+.release-readiness__header {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.release-readiness__actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.release-readiness__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-16);
+  margin-top: var(--space-16);
+}
+
+.release-readiness-card {
+  padding: var(--space-16);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(6, 12, 24, 0.24));
+}
+
+.release-readiness-card__header {
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: var(--space-12);
+}
+
+.release-readiness-card__header h5 {
+  margin: 0;
+}
+
+.release-readiness-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-10);
+}
+
+.release-readiness-item {
+  align-items: flex-start;
+}
+
+.release-readiness-item__badge {
+  min-width: 104px;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.release-readiness-item__badge--success {
+  background: rgba(0, 255, 136, 0.14);
+  color: rgba(120, 255, 196, 0.96);
+}
+
+.release-readiness-item__badge--warning {
+  background: rgba(255, 170, 60, 0.16);
+  color: rgba(255, 211, 150, 0.96);
+}
+
+.release-readiness-item__badge--info {
+  background: rgba(114, 168, 255, 0.16);
+  color: rgba(192, 222, 255, 0.96);
+}
+
+.release-readiness__evidence {
+  margin: var(--space-16) 0 0;
+}
+
 .workspace-helper {
   margin-top: var(--space-6);
 }
@@ -2024,6 +2120,7 @@ body {
   .sample-browser-toolbar,
   .assistant-settings,
   .project-meta-grid,
+  .release-readiness__grid,
   .sequencer-utility-bar,
   [data-workspace-layout="split"] .workspace-shell,
   [data-workspace-layout="code"] .workspace-shell {
@@ -2067,7 +2164,10 @@ body {
   .project-library-card__actions,
   .clip-library-card__actions,
   .pattern-card__actions,
-  .assistant-panel__header {
+  .assistant-panel__header,
+  .release-readiness__header,
+  .release-readiness__actions,
+  .release-readiness-item {
     flex-direction: column;
     align-items: flex-start;
   }

@@ -1,6 +1,6 @@
 # Strudel Studio Release Status
 
-Last updated: 2026-04-11
+Last updated: 2026-04-12
 Review state: Review candidate
 Repo: `W:\Repos\_My Tools\strudel-studio`
 Branch: `main`
@@ -12,6 +12,7 @@ Feature baseline: `FEATURE_SNAPSHOT.md`
 - Simple View console shell and Advanced View workstation are implemented.
 - Local Web Audio transport, arrangement editing, Pattern Rack, sample lanes, project snapshots, and project export/import are working locally.
 - Audio diagnostics, `Audio Check`, PWA manifest, and service worker are in place.
+- Projects + Export now includes an in-app `Release Readiness` panel with a copyable review brief, automated evidence list, and explicit manual sign-off reminders.
 - Project Clip Vault is now part of the shipped workflow:
   - imported lane audio is automatically banked per project
   - banked clips can be previewed and reloaded into any lane
@@ -29,7 +30,8 @@ Feature baseline: `FEATURE_SNAPSHOT.md`
 - Exported project packages now use schema `version: 6` with `projectClipBank` metadata plus `sampleAssets.lanes` and `sampleAssets.clipBank`.
 - Importing the exported project restored both lane clip state and the project vault clip.
 - Browser console showed no errors during the pass.
-- Repo automation now includes `scripts\run-release-smoke.cmd`, which passed locally on 2026-04-12.
+- Repo automation now includes `scripts\run-release-smoke.cmd`, which passed locally on 2026-04-12 after being hardened to use a dedicated temporary browser profile plus a larger virtual-time budget.
+- Dedicated headless DOM verification confirmed the release surface rendered `Release Readiness`, `2 manual checks remain`, and `Copy Review Brief` on the live page.
 
 ## Top 5 Risks / Gaps
 1. A lightweight automated smoke suite now exists, but broader regression coverage still depends on focused browser smoke and manual QA.
@@ -44,6 +46,7 @@ Feature baseline: `FEATURE_SNAPSHOT.md`
 
 ## Next Actions
 - Run `scripts\run-release-smoke.cmd` before major review passes.
+- Use the in-app `Copy Review Brief` action when handing the tool to a reviewer.
 - Run reviewer QA with real speakers or headphones.
 - Do one normal-profile PWA install smoke.
 - Expand the smoke suite only if broader automated coverage is worth the maintenance cost.

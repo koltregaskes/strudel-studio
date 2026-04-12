@@ -1331,6 +1331,12 @@ arrange(
             copyProjectJsonBtn: document.getElementById('copyProjectJsonBtn'),
             downloadProjectJsonBtn: document.getElementById('downloadProjectJsonBtn'),
             exportJsonTextarea: document.getElementById('exportJsonTextarea'),
+            releaseReadinessBadge: document.getElementById('releaseReadinessBadge'),
+            releaseReadinessSummary: document.getElementById('releaseReadinessSummary'),
+            releaseAutomationList: document.getElementById('releaseAutomationList'),
+            releaseManualList: document.getElementById('releaseManualList'),
+            releaseEvidenceText: document.getElementById('releaseEvidenceText'),
+            copyReviewBriefBtn: document.getElementById('copyReviewBriefBtn'),
             sceneDescription: document.getElementById('sceneDescription'),
             studioLayoutBtn: document.getElementById('studioLayoutBtn'),
             splitLayoutBtn: document.getElementById('splitLayoutBtn'),
@@ -2999,12 +3005,185 @@ arrange(
         return JSON.stringify(this.serializeProject(), null, 2);
     }
 
+    getInstallReviewState() {
+        const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isStandalone) {
+            return {
+                tone: 'success',
+                label: 'This browser profile is already running the installed PWA shell.'
+            };
+        }
+
+        if (this.pendingInstallPrompt) {
+            return {
+                tone: 'success',
+                label: 'This browser context has exposed the install prompt. A human should still complete one install pass in a normal everyday profile.'
+            };
+        }
+
+        if ('serviceWorker' in navigator) {
+            return {
+                tone: 'info',
+                label: 'Manifest and service worker are in place, but this browser context has not exposed the install prompt yet.'
+            };
+        }
+
+        return {
+            tone: 'warning',
+            label: 'This browser context is not currently exposing the PWA install path.'
+        };
+    }
+
+    formatSavedTimestamp(value) {
+        if (!value) {
+            return 'just now';
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return 'recently';
+        }
+
+        return date.toLocaleString();
+    }
+
+    buildReleaseReadinessState() {
+        const exportSchemaVersion = this.serializeProject().version;
+        const snapshotCount = this.projectLibrary.length;
+        const clipCount = this.getProjectClipInventoryCount();
+        const patternCount = this.projectPatterns.length;
+        const sectionCount = this.arrangement.length;
+        const installState = this.getInstallReviewState();
+        const updatedAt = this.formatSavedTimestamp(this.projectMeta.updatedAt);
+
+        const automationItems = [
+            {
+                tone: 'success',
+                label: `Portable export schema v${exportSchemaVersion} is ready from both Export Project and Session JSON.`
+            },
+            snapshotCount > 0
+                ? {
+                    tone: 'success',
+                    label: `Snapshot shelf currently holds ${snapshotCount} saved draft${snapshotCount === 1 ? '' : 's'}.`
+                }
+                : {
+                    tone: 'info',
+                    label: 'Snapshot shelf is wired, but this review pass has not saved a local snapshot yet.'
+                },
+            {
+                tone: patternCount > 0 || clipCount > 0 ? 'success' : 'info',
+                label: `Current project carries ${sectionCount} arrangement section${sectionCount === 1 ? '' : 's'}, ${patternCount} pattern capture${patternCount === 1 ? '' : 's'}, and ${clipCount} vault clip${clipCount === 1 ? '' : 's'}.`
+            },
+            installState,
+            {
+                tone: 'success',
+                label: 'Repo smoke runner exists at scripts\\run-release-smoke.cmd and should be rerun before final release review.'
+            }
+        ];
+
+        const manualItems = [
+            {
+                tone: 'warning',
+                label: 'Use Audio Check and Play on real speakers or headphones to confirm you can actually hear output on the target machine.'
+            },
+            {
+                tone: 'warning',
+                label: 'Open the app in a normal browser profile and confirm the installed PWA launches cleanly as a standalone app.'
+            },
+            {
+                tone: 'info',
+                label: 'Optional: only test the Local AI panel if localhost model support is in scope for this review.'
+            }
+        ];
+
+        return {
+            badgeTone: 'warning',
+            badgeLabel: '2 manual checks remain',
+            summary: 'Automation covers the studio shell, export path, persistence, and PWA plumbing. Release sign-off still needs real audio output and one normal-profile install pass.',
+            evidence: `Current project "${this.projectMeta.name}" was last saved ${updatedAt}. Session shape: ${sectionCount} section${sectionCount === 1 ? '' : 's'}, ${patternCount} pattern capture${patternCount === 1 ? '' : 's'}, ${clipCount} vault clip${clipCount === 1 ? '' : 's'}, and ${snapshotCount} local snapshot${snapshotCount === 1 ? '' : 's'}.`,
+            automationItems,
+            manualItems
+        };
+    }
+
+    renderReleaseReadinessList(container, items) {
+        if (!container) {
+            return;
+        }
+
+        container.innerHTML = '';
+        items.forEach((item) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'release-readiness-item';
+
+            const badge = document.createElement('span');
+            badge.className = `release-readiness-item__badge release-readiness-item__badge--${item.tone}`;
+            badge.textContent = item.tone === 'success'
+                ? 'Ready'
+                : item.tone === 'warning'
+                    ? 'Needs human'
+                    : 'Note';
+
+            const text = document.createElement('span');
+            text.textContent = item.label;
+
+            listItem.append(badge, text);
+            container.appendChild(listItem);
+        });
+    }
+
+    buildReleaseReviewBrief() {
+        const readiness = this.buildReleaseReadinessState();
+        const automatedBlock = readiness.automationItems.map((item) => `- ${item.label}`).join('\n');
+        const manualBlock = readiness.manualItems.map((item) => `- ${item.label}`).join('\n');
+
+        return [
+            `Strudel Studio review brief`,
+            ``,
+            `Project: ${this.projectMeta.name}`,
+            `Saved: ${this.formatSavedTimestamp(this.projectMeta.updatedAt)}`,
+            `Status: ${readiness.badgeLabel}`,
+            ``,
+            `Summary`,
+            `${readiness.summary}`,
+            ``,
+            `Current evidence`,
+            `${readiness.evidence}`,
+            ``,
+            `Automation and in-app evidence`,
+            automatedBlock,
+            ``,
+            `Human sign-off still needed`,
+            manualBlock,
+            ``,
+            `Release docs`,
+            `- REVIEW_CHECKLIST.md`,
+            `- TOOLS-MANAGER-STATUS.md`,
+            `- RELEASE_STATUS.md`
+        ].join('\n');
+    }
+
+    renderReleaseReadinessPanel() {
+        if (!this.dom.releaseReadinessBadge) {
+            return;
+        }
+
+        const readiness = this.buildReleaseReadinessState();
+        this.dom.releaseReadinessBadge.className = `status status--${readiness.badgeTone}`;
+        this.dom.releaseReadinessBadge.textContent = readiness.badgeLabel;
+        this.dom.releaseReadinessSummary.textContent = readiness.summary;
+        this.dom.releaseEvidenceText.textContent = readiness.evidence;
+        this.renderReleaseReadinessList(this.dom.releaseAutomationList, readiness.automationItems);
+        this.renderReleaseReadinessList(this.dom.releaseManualList, readiness.manualItems);
+    }
+
     renderExportPanel() {
         if (!this.dom.exportJsonTextarea) {
             return;
         }
 
         this.dom.exportJsonTextarea.value = this.buildProjectJsonPreview();
+        this.renderReleaseReadinessPanel();
     }
 
     queueExportPanelRefresh() {
@@ -3070,6 +3249,7 @@ arrange(
         const records = await this.getAllProjectRecords();
         this.projectLibrary = records.sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
         this.renderProjectLibrary();
+        this.renderReleaseReadinessPanel();
     }
 
     renderProjectLibrary() {
@@ -3916,6 +4096,7 @@ ${prompt}`;
             this.dom.installAppBtn.textContent = 'Installed';
             this.dom.installAppBtn.disabled = true;
             this.dom.installAppBtn.title = 'This browser profile already has the studio installed as an app.';
+            this.renderReleaseReadinessPanel();
         }
 
         if ('serviceWorker' in navigator) {
@@ -3930,6 +4111,7 @@ ${prompt}`;
             this.dom.installAppBtn.disabled = false;
             this.dom.installAppBtn.textContent = 'Install App';
             this.dom.installAppBtn.title = 'Install the studio as a standalone desktop-style web app.';
+            this.renderReleaseReadinessPanel();
         });
 
         window.addEventListener('appinstalled', () => {
@@ -3937,6 +4119,7 @@ ${prompt}`;
             this.dom.installAppBtn.textContent = 'Installed';
             this.dom.installAppBtn.disabled = true;
             this.dom.installAppBtn.title = 'This browser profile already has the studio installed as an app.';
+            this.renderReleaseReadinessPanel();
         });
     }
 
@@ -5888,6 +6071,11 @@ ${prompt}`;
                 .catch((error) => this.showNotification(`Could not copy JSON: ${error.message}`, 'error'));
         });
         this.dom.downloadProjectJsonBtn.addEventListener('click', () => this.downloadProjectJson());
+        this.dom.copyReviewBriefBtn?.addEventListener('click', () => {
+            this.copyText(this.buildReleaseReviewBrief())
+                .then(() => this.showNotification('Review brief copied.', 'success'))
+                .catch((error) => this.showNotification(`Could not copy review brief: ${error.message}`, 'error'));
+        });
         this.dom.codeTextarea.addEventListener('input', () => {
             this.userHasCustomCode = true;
             this.queueExportPanelRefresh();

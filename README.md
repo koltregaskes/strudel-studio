@@ -21,6 +21,7 @@ Strudel Studio is a click-first browser music studio with a programmable Strudel
 - Local-only AI assistant for code and composition help via an OpenAI-compatible localhost endpoint
 - Browser project shelf with local snapshots stored in IndexedDB
 - Export Dock with live JSON preview, copy, download, and full project import/export support
+- In-app Release Readiness panel with a copyable review brief and explicit automated-vs-human sign-off guidance
 - Recording export from the local mix
 - PWA install support for desktop and Android-style home screen use
 - Repo-tracked feature inventory in `FEATURE_SNAPSHOT.md`

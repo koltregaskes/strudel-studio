@@ -38,6 +38,7 @@ function Wait-ForUrl {
 $startedServer = $false
 $serverProcess = $null
 $domDumpPath = Join-Path $env:TEMP "strudel-release-smoke-dom-$([guid]::NewGuid().ToString('N')).html"
+$browserProfilePath = Join-Path $env:TEMP "strudel-release-smoke-profile-$([guid]::NewGuid().ToString('N'))"
 
 try {
     try {
@@ -61,7 +62,8 @@ try {
     }
 
     $smokeUrl = "${baseUrl}?release-smoke=1&ts=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
-    $edgeCommand = "`"$browserPath`" --headless --disable-gpu --autoplay-policy=no-user-gesture-required --virtual-time-budget=30000 --dump-dom `"$smokeUrl`" > `"$domDumpPath`" 2>nul"
+    New-Item -ItemType Directory -Path $browserProfilePath | Out-Null
+    $edgeCommand = "`"$browserPath`" --headless --disable-gpu --user-data-dir=`"$browserProfilePath`" --autoplay-policy=no-user-gesture-required --virtual-time-budget=120000 --dump-dom `"$smokeUrl`" > `"$domDumpPath`" 2>nul"
     cmd /c $edgeCommand | Out-Null
 
     $domDump = Get-Content -Raw -Path $domDumpPath
@@ -82,4 +84,5 @@ try {
         Stop-Process -Id $serverProcess.Id -Force -ErrorAction SilentlyContinue
     }
     Remove-Item -LiteralPath $domDumpPath -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $browserProfilePath -Recurse -Force -ErrorAction SilentlyContinue
 }

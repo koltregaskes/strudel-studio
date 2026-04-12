@@ -1,6 +1,6 @@
 # Strudel Studio Feature Snapshot
 
-Date: 2026-04-11
+Date: 2026-04-12
 Project snapshot schema: `version: 6`
 Purpose: repo-tracked baseline for shipped controls, views, and behaviors so future audits can confirm nothing was silently removed.
 
@@ -35,6 +35,7 @@ Purpose: repo-tracked baseline for shipped controls, views, and behaviors so fut
 - Workspace with code editor and local AI panel
 - Project Shelf
 - Export Dock
+- Release Readiness panel
 - Studio Notes
 
 ## Session and Project Controls
@@ -217,6 +218,8 @@ Purpose: repo-tracked baseline for shipped controls, views, and behaviors so fut
   - Refresh JSON
   - Copy JSON
   - Download JSON
+- Release Readiness actions:
+  - Copy review brief
 - Factory Starting Points actions:
   - Load starter into code panel
   - Copy starter code

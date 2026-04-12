@@ -888,6 +888,35 @@
                     <span class="form-label">Session JSON</span>
                     <textarea id="exportJsonTextarea" class="form-control export-json-textarea" readonly></textarea>
                 </label>
+                <section class="release-readiness project-meta-field project-meta-field--wide" aria-labelledby="releaseReadinessHeading">
+                    <div class="release-readiness__header">
+                        <div>
+                            <h4 id="releaseReadinessHeading">Release Readiness</h4>
+                            <p id="releaseReadinessSummary" class="helper-text">Automation covers the studio shell and package flow. Real audio output and a normal-profile install still need human sign-off.</p>
+                        </div>
+                        <div class="release-readiness__actions">
+                            <span id="releaseReadinessBadge" class="status">Awaiting manual sign-off</span>
+                            <button id="copyReviewBriefBtn" class="btn btn--outline" type="button">Copy Review Brief</button>
+                        </div>
+                    </div>
+                    <div class="release-readiness__grid">
+                        <article class="release-readiness-card">
+                            <div class="release-readiness-card__header">
+                                <h5>Automation and in-app evidence</h5>
+                                <span class="helper-text">What this build can prove honestly right now.</span>
+                            </div>
+                            <ul id="releaseAutomationList" class="release-readiness-list"></ul>
+                        </article>
+                        <article class="release-readiness-card">
+                            <div class="release-readiness-card__header">
+                                <h5>Human sign-off still needed</h5>
+                                <span class="helper-text">What a reviewer should still do outside automation.</span>
+                            </div>
+                            <ul id="releaseManualList" class="release-readiness-list"></ul>
+                        </article>
+                    </div>
+                    <p id="releaseEvidenceText" class="helper-text release-readiness__evidence">Reviewer brief will summarize the current project, export schema, and remaining manual checks.</p>
+                </section>
             </div>
         </section>
 

@@ -1,23 +1,24 @@
 # Tools Manager Status
 
-Updated: 2026-04-11
+Updated: 2026-04-12
 Tool: Strudel Studio
 Slug: `strudel-studio`
 Owner session: `strudel-studio-session`
 
 ## Current State
 - RAG: `Green`
-- Completion: `94%`
+- Completion: `95%`
 - Phase: `review-candidate`
 - Install or build state: repo implemented, local smoke target verified, public site configured
-- Last reviewed: `2026-04-11`
+- Last reviewed: `2026-04-12`
 
 ## Highest-Priority Chunk Executed
-- `Project Clip Vault`
-- Imported clips now auto-bank per project, can be previewed or loaded into any lane, and persist through snapshots plus full project export/import packages.
+- `Release Readiness panel`
+- Projects + Export now includes an in-app release-readiness panel with a copyable review brief, explicit automated-vs-human sign-off guidance, and current project evidence so release review no longer depends on scattered docs alone.
 
 ## Evidence
-- Browser smoke on `http://127.0.0.1:8031/` passed for:
+- Repo-root smoke runner `scripts\run-release-smoke.cmd` passed locally on `2026-04-12` after being hardened to use a dedicated temporary browser profile and a larger virtual-time budget.
+- Smoke summary still covered:
   - Simple View and Advanced View switching
   - `Audio Check` plus `Play`
   - sample import into the vocal lane
@@ -26,9 +27,12 @@ Owner session: `strudel-studio-session`
   - reloading the banked clip into the FX lane
   - snapshot save and snapshot reload
   - full project export and re-import
-- Export package schema is now `version: 6` and includes `projectClipBank` metadata plus `sampleAssets.clipBank`.
-- Browser console showed no errors during the pass.
-- Repo-root smoke runner `scripts\run-release-smoke.cmd` now exists and passed locally on 2026-04-12.
+- Dedicated headless DOM verification confirmed the new in-app release surface rendered:
+  - `Release Readiness`
+  - `2 manual checks remain`
+  - `Copy Review Brief`
+  - `Repo smoke runner exists at scripts\run-release-smoke.cmd`
+- Export package schema remains `version: 6` with `projectClipBank` metadata plus `sampleAssets.clipBank`.
 
 ## Top Risks
 1. Only a lightweight smoke suite exists so far; broader regression coverage is still limited.
@@ -43,6 +47,7 @@ Owner session: `strudel-studio-session`
 
 ## Next Actions
 - Run `scripts\run-release-smoke.cmd` before review and after risky changes.
+- Use the in-app `Copy Review Brief` action during review handoffs.
 - Run reviewer QA with real audio output.
 - Do one normal-profile PWA install check.
 - Expand the smoke suite only if broader automated coverage is worth the maintenance cost.
