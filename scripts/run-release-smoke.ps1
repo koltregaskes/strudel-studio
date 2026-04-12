@@ -39,6 +39,7 @@ $startedServer = $false
 $serverProcess = $null
 $domDumpPath = Join-Path $env:TEMP "strudel-release-smoke-dom-$([guid]::NewGuid().ToString('N')).html"
 $browserProfilePath = Join-Path $env:TEMP "strudel-release-smoke-profile-$([guid]::NewGuid().ToString('N'))"
+$virtualTimeBudgetMs = 600000
 
 try {
     try {
@@ -63,7 +64,7 @@ try {
 
     $smokeUrl = "${baseUrl}?release-smoke=1&ts=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
     New-Item -ItemType Directory -Path $browserProfilePath | Out-Null
-    $edgeCommand = "`"$browserPath`" --headless --disable-gpu --user-data-dir=`"$browserProfilePath`" --autoplay-policy=no-user-gesture-required --virtual-time-budget=120000 --dump-dom `"$smokeUrl`" > `"$domDumpPath`" 2>nul"
+    $edgeCommand = "`"$browserPath`" --headless --disable-gpu --user-data-dir=`"$browserProfilePath`" --autoplay-policy=no-user-gesture-required --virtual-time-budget=$virtualTimeBudgetMs --dump-dom `"$smokeUrl`" > `"$domDumpPath`" 2>nul"
     cmd /c $edgeCommand | Out-Null
 
     $domDump = Get-Content -Raw -Path $domDumpPath
@@ -73,6 +74,9 @@ try {
     }
 
     $payload = $match.Groups[1].Value | ConvertFrom-Json
+    if ($payload.status -eq 'running') {
+        throw "Release smoke did not finish before the DOM dump completed. Virtual time budget was ${virtualTimeBudgetMs}ms."
+    }
     if ($payload.status -ne 'pass') {
         throw "Release smoke failed: $($payload.error)"
     }
