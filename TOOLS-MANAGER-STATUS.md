@@ -28,9 +28,10 @@ Owner session: `strudel-studio-session`
   - full project export and re-import
 - Export package schema is now `version: 6` and includes `projectClipBank` metadata plus `sampleAssets.clipBank`.
 - Browser console showed no errors during the pass.
+- Repo-root smoke runner `scripts\run-release-smoke.cmd` now exists and passed locally on 2026-04-12.
 
 ## Top Risks
-1. No automated regression suite exists yet.
+1. Only a lightweight smoke suite exists so far; broader regression coverage is still limited.
 2. Real speaker or headphone validation is still required.
 3. PWA install flow still needs a normal-profile manual check.
 4. Local AI depends on a user-supplied localhost runtime and is optional for release.
@@ -41,9 +42,10 @@ Owner session: `strudel-studio-session`
 - External publishing connectors are still out of scope for this pass.
 
 ## Next Actions
+- Run `scripts\run-release-smoke.cmd` before review and after risky changes.
 - Run reviewer QA with real audio output.
 - Do one normal-profile PWA install check.
-- Decide whether to automate the browser smoke path before launch-candidate sign-off.
+- Expand the smoke suite only if broader automated coverage is worth the maintenance cost.
 
 ## Dependencies
 - music-video-generator

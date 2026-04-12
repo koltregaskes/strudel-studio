@@ -36,6 +36,10 @@ Strudel Studio is a click-first browser music studio with a programmable Strudel
 - Android is currently served through the PWA path
 - Native desktop or native Android wrappers can be evaluated later if the PWA path proves too limiting
 
+## Quality Checks
+- Automated smoke runner: `scripts\run-release-smoke.cmd`
+- Plain-English review checklist: `REVIEW_CHECKLIST.md`
+
 ## Manager Visibility
 - Current manager-facing status lives in `TOOLS-MANAGER-STATUS.md`.
 - Release-facing status lives in `RELEASE_STATUS.md`.

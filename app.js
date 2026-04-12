@@ -1416,6 +1416,7 @@ arrange(
         this.dom.appContainer.dataset.shellReady = 'true';
         document.body.classList.add('shell-ready');
         this.loadProjectLibrary().catch((error) => console.warn('Could not load project library:', error));
+        this.maybeRunReleaseSmokeFromQuery();
     }
 
     hydrateStaticCopy() {
@@ -1714,6 +1715,12 @@ arrange(
         const minutes = Math.floor(seconds / 60);
         const remainder = Math.floor(seconds % 60);
         return `${minutes}:${String(remainder).padStart(2, '0')}`;
+    }
+
+    wait(milliseconds) {
+        return new Promise((resolve) => {
+            window.setTimeout(resolve, milliseconds);
+        });
     }
 
     buildRhythmStepButtons() {
@@ -3227,6 +3234,90 @@ arrange(
         return response.blob();
     }
 
+    async buildPortableSampleAssets() {
+        const sampleAssets = {
+            lanes: {},
+            clipBank: {}
+        };
+
+        for (const laneId of ['vocal', 'fx', 'texture', 'perc']) {
+            if (this.sampleState[laneId].blob) {
+                // eslint-disable-next-line no-await-in-loop
+                sampleAssets.lanes[laneId] = await this.blobToDataUrl(this.sampleState[laneId].blob);
+            }
+        }
+
+        for (const entry of this.projectClipBank) {
+            if (!entry.blob) {
+                continue;
+            }
+
+            // eslint-disable-next-line no-await-in-loop
+            sampleAssets.clipBank[entry.id] = await this.blobToDataUrl(entry.blob);
+        }
+
+        return sampleAssets;
+    }
+
+    async buildPortableProjectPayload() {
+        return {
+            ...this.serializeProject(),
+            sampleAssets: await this.buildPortableSampleAssets()
+        };
+    }
+
+    async hydratePortableSampleAssets(sampleAssets = {}) {
+        const restoredAssets = {
+            lanes: {},
+            clipBank: {}
+        };
+        const laneAssets = sampleAssets.lanes || sampleAssets;
+
+        for (const laneId of ['vocal', 'fx', 'texture', 'perc']) {
+            const dataUrl = laneAssets[laneId];
+            if (!dataUrl) {
+                continue;
+            }
+
+            // eslint-disable-next-line no-await-in-loop
+            restoredAssets.lanes[laneId] = await this.dataUrlToBlob(dataUrl);
+        }
+
+        for (const [entryId, dataUrl] of Object.entries(sampleAssets.clipBank || {})) {
+            if (!dataUrl) {
+                continue;
+            }
+
+            // eslint-disable-next-line no-await-in-loop
+            restoredAssets.clipBank[entryId] = await this.dataUrlToBlob(dataUrl);
+        }
+
+        return restoredAssets;
+    }
+
+    async importProjectPayload(project, options = {}) {
+        const {
+            persist = true,
+            notify = false,
+            statusMessage = 'Project imported. Embedded lane audio and project vault clips were restored if they were included in the file.'
+        } = options;
+
+        this.applyProject(project);
+        if (project.sampleAssets) {
+            const restoredAssets = await this.hydratePortableSampleAssets(project.sampleAssets);
+            this.applyProjectSampleAssets(restoredAssets);
+        }
+
+        if (persist) {
+            this.persistProject();
+        }
+
+        if (notify) {
+            this.showNotification('Project imported.', 'success');
+            this.renderStrudelStatus(statusMessage, 'info');
+        }
+    }
+
     renderSampleBrowser() {
         if (!this.dom.sampleBrowserList) {
             return;
@@ -3857,6 +3948,242 @@ ${prompt}`;
 
         await this.pendingInstallPrompt.prompt();
         this.pendingInstallPrompt = null;
+    }
+
+    async waitForServiceWorkerRegistration(maxAttempts = 40, delayMs = 150) {
+        if (!('serviceWorker' in navigator)) {
+            return false;
+        }
+
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+            // eslint-disable-next-line no-await-in-loop
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration) {
+                return true;
+            }
+            // eslint-disable-next-line no-await-in-loop
+            await this.wait(delayMs);
+        }
+
+        return false;
+    }
+
+    createReleaseSmokeAudioFile(fileName = 'release-smoke.wav') {
+        const sampleRate = 44100;
+        const durationSeconds = 0.45;
+        const frequency = 440;
+        const sampleCount = Math.floor(sampleRate * durationSeconds);
+        const dataSize = sampleCount * 2;
+        const buffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(buffer);
+        const bytes = new Uint8Array(buffer);
+
+        const writeAscii = (offset, value) => {
+            for (let index = 0; index < value.length; index += 1) {
+                bytes[offset + index] = value.charCodeAt(index);
+            }
+        };
+
+        writeAscii(0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeAscii(8, 'WAVE');
+        writeAscii(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, 1, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        writeAscii(36, 'data');
+        view.setUint32(40, dataSize, true);
+
+        for (let index = 0; index < sampleCount; index += 1) {
+            const sample = Math.sin((2 * Math.PI * frequency * index) / sampleRate) * 0.35;
+            view.setInt16(44 + (index * 2), Math.max(-32767, Math.min(32767, Math.round(sample * 32767))), true);
+        }
+
+        return new File([buffer], fileName, { type: 'audio/wav' });
+    }
+
+    setReleaseSmokeResult(payload) {
+        let artifact = document.getElementById('releaseSmokeResult');
+        if (!artifact) {
+            artifact = document.createElement('script');
+            artifact.id = 'releaseSmokeResult';
+            artifact.type = 'application/json';
+            document.body.appendChild(artifact);
+        }
+
+        artifact.textContent = JSON.stringify(payload, null, 2);
+        document.body.dataset.releaseSmokeStatus = payload.status || 'unknown';
+    }
+
+    async runReleaseSmoke() {
+        const summary = {
+            startedAt: new Date().toISOString()
+        };
+
+        const ensure = (condition, message) => {
+            if (!condition) {
+                throw new Error(message);
+            }
+        };
+
+        this.newProject();
+        summary.views = {
+            startedIn: this.interfaceMode
+        };
+
+        const manifestResponse = await fetch('manifest.webmanifest');
+        const swResponse = await fetch('sw.js');
+        const serviceWorkerReady = await this.waitForServiceWorkerRegistration();
+        summary.pwa = {
+            manifestStatus: manifestResponse.status,
+            swStatus: swResponse.status,
+            serviceWorkerReady,
+            installButtonPresent: Boolean(this.dom.installAppBtn)
+        };
+        ensure(manifestResponse.ok, 'Manifest request failed during release smoke.');
+        ensure(swResponse.ok, 'Service worker request failed during release smoke.');
+        ensure(serviceWorkerReady, 'Service worker did not register during release smoke.');
+
+        this.setInterfaceMode('advanced');
+        this.setAdvancedTab('samples');
+        this.setInterfaceMode('simple');
+        summary.views.finishedIn = this.interfaceMode;
+        summary.views.advancedTab = this.advancedTab;
+        ensure(this.interfaceMode === 'simple', 'Simple View did not restore during release smoke.');
+        ensure(this.advancedTab === 'samples', 'Advanced samples tab did not activate during release smoke.');
+
+        await this.runAudioCheck();
+        await this.togglePlayStop();
+        await this.wait(700);
+        summary.transport = {
+            audioContextState: this.dom.audioContextState.textContent.trim(),
+            audioOutputState: this.dom.audioOutputState.textContent.trim(),
+            isPlaying: this.isPlaying
+        };
+        ensure(summary.transport.audioContextState.includes('Running'), 'Audio context did not enter running state.');
+        ensure(summary.transport.audioOutputState.includes('Signal'), 'Transport did not show live output signal.');
+        if (this.isPlaying) {
+            await this.togglePlayStop();
+        }
+
+        const arrangementBefore = this.arrangement.length;
+        this.addArrangementSection();
+        summary.arrangement = {
+            before: arrangementBefore,
+            after: this.arrangement.length
+        };
+        ensure(this.arrangement.length === arrangementBefore + 1, 'Arrangement section was not added.');
+
+        const smokeFile = this.createReleaseSmokeAudioFile();
+        await this.handleSampleFile('vocal', smokeFile);
+        summary.clipVault = {
+            count: this.projectClipBank.length,
+            clipCountMeta: this.getProjectClipInventoryCount(),
+            vocalFile: this.sampleState.vocal.fileName
+        };
+        ensure(this.projectClipBank.length === 1, 'Project clip vault did not capture the imported sample.');
+        ensure(this.sampleState.vocal.fileName === smokeFile.name, 'Vocal lane did not load the smoke sample.');
+
+        this.captureCurrentPattern();
+        summary.patternRack = {
+            count: this.projectPatterns.length
+        };
+        ensure(this.projectPatterns.length === 1, 'Pattern Rack did not capture the groove.');
+
+        await this.loadProjectClipBankEntryToLane(this.projectClipBank[0].id, 'fx');
+        await this.wait(200);
+        summary.fxLane = {
+            fileName: this.sampleState.fx.fileName,
+            steps: [...this.sequenceConfig.fxSteps]
+        };
+        ensure(this.sampleState.fx.fileName === smokeFile.name, 'Vault clip did not reload into the FX lane.');
+
+        this.projectMeta.name = 'Release Smoke Session';
+        this.projectMeta.notes = 'Automated smoke suite verification';
+        this.syncDomFromState();
+        await this.saveProjectToBrowser();
+        summary.snapshots = {
+            count: this.projectLibrary.length
+        };
+        ensure(this.projectLibrary.length > 0, 'Snapshot shelf did not record the smoke session.');
+
+        const exportPayload = await this.buildPortableProjectPayload();
+        summary.export = {
+            version: exportPayload.version,
+            clipBankCount: exportPayload.projectClipBank.length,
+            laneAssetCount: Object.keys(exportPayload.sampleAssets?.lanes || {}).length,
+            clipAssetCount: Object.keys(exportPayload.sampleAssets?.clipBank || {}).length
+        };
+        ensure(exportPayload.version === 6, 'Portable export payload did not use schema version 6.');
+        ensure(exportPayload.projectClipBank.length === 1, 'Portable export payload did not include the vault entry.');
+        ensure(summary.export.laneAssetCount >= 2, 'Portable export payload did not include lane audio assets.');
+        ensure(summary.export.clipAssetCount === 1, 'Portable export payload did not include the vault audio asset.');
+
+        this.newProject();
+        await this.importProjectPayload(exportPayload, { persist: false, notify: false });
+        summary.imported = {
+            projectName: this.projectMeta.name,
+            bankCount: this.projectClipBank.length,
+            vocalFile: this.sampleState.vocal.fileName,
+            fxFile: this.sampleState.fx.fileName
+        };
+        ensure(this.projectMeta.name === 'Release Smoke Session', 'Portable import did not restore the project name.');
+        ensure(this.projectClipBank.length === 1, 'Portable import did not restore the vault entry.');
+        ensure(this.sampleState.vocal.fileName === smokeFile.name, 'Portable import did not restore the vocal lane sample.');
+        ensure(this.sampleState.fx.fileName === smokeFile.name, 'Portable import did not restore the FX lane sample.');
+
+        return summary;
+    }
+
+    maybeRunReleaseSmokeFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has('release-smoke')) {
+            return;
+        }
+
+        this.releaseSmokeErrors = [];
+        window.addEventListener('error', (event) => {
+            this.releaseSmokeErrors.push(event.message || 'Unknown window error');
+        });
+        window.addEventListener('unhandledrejection', (event) => {
+            this.releaseSmokeErrors.push(String(event.reason || 'Unhandled promise rejection'));
+        });
+
+        const originalConsoleError = console.error.bind(console);
+        console.error = (...args) => {
+            this.releaseSmokeErrors.push(args.map((value) => String(value)).join(' '));
+            originalConsoleError(...args);
+        };
+
+        this.setReleaseSmokeResult({
+            status: 'running',
+            startedAt: new Date().toISOString()
+        });
+
+        this.runReleaseSmoke()
+            .then((summary) => {
+                if (this.releaseSmokeErrors.length) {
+                    throw new Error(`Console errors during release smoke: ${this.releaseSmokeErrors.join(' | ')}`);
+                }
+
+                this.setReleaseSmokeResult({
+                    status: 'pass',
+                    completedAt: new Date().toISOString(),
+                    summary
+                });
+            })
+            .catch((error) => {
+                this.setReleaseSmokeResult({
+                    status: 'fail',
+                    completedAt: new Date().toISOString(),
+                    error: error.message,
+                    consoleErrors: this.releaseSmokeErrors
+                });
+            });
     }
 
     renderArrangementTimeline() {
@@ -5112,32 +5439,7 @@ ${prompt}`;
     }
 
     async exportProject() {
-        const project = this.serializeProject();
-        const sampleAssets = {
-            lanes: {},
-            clipBank: {}
-        };
-
-        for (const laneId of ['vocal', 'fx', 'texture', 'perc']) {
-            if (this.sampleState[laneId].blob) {
-                // eslint-disable-next-line no-await-in-loop
-                sampleAssets.lanes[laneId] = await this.blobToDataUrl(this.sampleState[laneId].blob);
-            }
-        }
-
-        for (const entry of this.projectClipBank) {
-            if (!entry.blob) {
-                continue;
-            }
-
-            // eslint-disable-next-line no-await-in-loop
-            sampleAssets.clipBank[entry.id] = await this.blobToDataUrl(entry.blob);
-        }
-
-        const exportPayload = {
-            ...project,
-            sampleAssets
-        };
+        const exportPayload = await this.buildPortableProjectPayload();
 
         const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json;charset=utf-8' });
         const url = URL.createObjectURL(blob);
@@ -5154,38 +5456,7 @@ ${prompt}`;
     async importProject(file) {
         const text = await file.text();
         const project = JSON.parse(text);
-        this.applyProject(project);
-        if (project.sampleAssets) {
-            const sampleAssets = {
-                lanes: {},
-                clipBank: {}
-            };
-            const laneAssets = project.sampleAssets.lanes || project.sampleAssets;
-
-            for (const laneId of ['vocal', 'fx', 'texture', 'perc']) {
-                const dataUrl = laneAssets[laneId];
-                if (!dataUrl) {
-                    continue;
-                }
-
-                // eslint-disable-next-line no-await-in-loop
-                sampleAssets.lanes[laneId] = await this.dataUrlToBlob(dataUrl);
-            }
-
-            for (const [entryId, dataUrl] of Object.entries(project.sampleAssets.clipBank || {})) {
-                if (!dataUrl) {
-                    continue;
-                }
-
-                // eslint-disable-next-line no-await-in-loop
-                sampleAssets.clipBank[entryId] = await this.dataUrlToBlob(dataUrl);
-            }
-
-            this.applyProjectSampleAssets(sampleAssets);
-        }
-        this.persistProject();
-        this.showNotification('Project imported.', 'success');
-        this.renderStrudelStatus('Project imported. Embedded lane audio and project vault clips were restored if they were included in the file.', 'info');
+        await this.importProjectPayload(project, { persist: true, notify: true });
     }
 
     setupEventListeners() {

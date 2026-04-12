@@ -29,9 +29,10 @@ Feature baseline: `FEATURE_SNAPSHOT.md`
 - Exported project packages now use schema `version: 6` with `projectClipBank` metadata plus `sampleAssets.lanes` and `sampleAssets.clipBank`.
 - Importing the exported project restored both lane clip state and the project vault clip.
 - Browser console showed no errors during the pass.
+- Repo automation now includes `scripts\run-release-smoke.cmd`, which passed locally on 2026-04-12.
 
 ## Top 5 Risks / Gaps
-1. No automated regression suite exists yet, so confidence still depends on browser smoke and manual QA.
+1. A lightweight automated smoke suite now exists, but broader regression coverage still depends on focused browser smoke and manual QA.
 2. Real speaker or headphone validation on a normal user machine is still required before launch.
 3. The PWA install flow has shell support in place but still needs a non-automation, everyday-profile check.
 4. The local AI panel remains dependent on a user-supplied localhost model runtime and should be treated as optional for release.
@@ -42,6 +43,7 @@ Feature baseline: `FEATURE_SNAPSHOT.md`
 - External YouTube, TikTok, and Instagram connections are intentionally out of scope for this local studio release pass.
 
 ## Next Actions
+- Run `scripts\run-release-smoke.cmd` before major review passes.
 - Run reviewer QA with real speakers or headphones.
 - Do one normal-profile PWA install smoke.
-- Decide whether to add an automated smoke harness before launch-candidate sign-off.
+- Expand the smoke suite only if broader automated coverage is worth the maintenance cost.
