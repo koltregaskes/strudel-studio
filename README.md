@@ -39,7 +39,7 @@ Strudel Studio is a click-first browser music studio with a programmable Strudel
 
 ## Quality Checks
 - Automated smoke runner: `scripts\run-release-smoke.cmd`
-- Plain-English review checklist: `REVIEW_CHECKLIST.md`
+- Plain-English review checklist: `REVIEW_CHECKLIST.html`
 
 ## Manager Visibility
 - Current manager-facing status lives in `TOOLS-MANAGER-STATUS.md`.

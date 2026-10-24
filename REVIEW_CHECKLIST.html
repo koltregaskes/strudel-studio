@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strudel Studio Review Checklist</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #171717;
+      --muted: #585858;
+      --line: #d8d8d8;
+      --panel: #f7f7f5;
+      --accent: #1f6f5b;
+      --accent-weak: #e8f2ee;
+      --warn: #8a5a00;
+      --warn-weak: #fff5d8;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 20px 56px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin: 0 0 8px;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 30px 0 10px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul,
+    ol {
+      margin-top: 8px;
+      padding-left: 24px;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    code {
+      background: #eeeeeb;
+      border: 1px solid #deded8;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.95em;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: minmax(160px, 220px) 1fr;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 18px 0 0;
+    }
+
+    .meta dt,
+    .meta dd {
+      margin: 0;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .meta dt {
+      background: var(--panel);
+      font-weight: 700;
+    }
+
+    .meta dd {
+      min-width: 0;
+    }
+
+    .meta dt:last-of-type,
+    .meta dd:last-of-type {
+      border-bottom: 0;
+    }
+
+    .notice {
+      background: var(--warn-weak);
+      border: 1px solid #efd58b;
+      border-radius: 6px;
+      color: var(--warn);
+      padding: 12px 14px;
+      margin: 18px 0 0;
+    }
+
+    .check-section {
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .go-pass {
+      background: var(--accent-weak);
+      border: 1px solid #bdd9cf;
+      border-radius: 6px;
+      padding: 16px 18px;
+      margin-top: 14px;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 24px 16px 44px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      .meta {
+        grid-template-columns: 1fr;
+      }
+
+      .meta dt {
+        border-bottom: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Strudel Studio Review Checklist</h1>
+      <p>This is the plain-English answer to "what do we still need to check before launch?"</p>
+      <dl class="meta" aria-label="Document metadata">
+        <dt>Owner</dt>
+        <dd>Tools Estate / Strudel Studio</dd>
+        <dt>Purpose</dt>
+        <dd>Human-facing review checklist for the final Strudel Studio launch pass.</dd>
+        <dt>Freshness</dt>
+        <dd>Generated as an HTML view on 2026-06-16 from Markdown last modified 2026-04-12T17:41:33Z.</dd>
+        <dt>Source paths</dt>
+        <dd>View path: W:\repos\_My Tools\strudel-studio\REVIEW_CHECKLIST.html. Archived Markdown source after conversion: W:\999-archive\W-ROOT\repos\_My Tools\strudel-studio\REVIEW_CHECKLIST.md.</dd>
+        <dt>Linear</dt>
+        <dd><a href="https://linear.app/koltregaskes/issue/KOL-856/archive-redundant-dated-markdown-and-json-after-importing-durable">KOL-856</a></dd>
+        <dt>Runtime tables</dt>
+        <dd>workspace_documents; activity_log</dd>
+      </dl>
+      <p class="notice">This HTML file is a view, not source of truth. Operational document state is tracked by KOL-856 and the Runtime workspace document registry.</p>
+    </header>
+
+    <section class="check-section">
+      <h2>What A Regression Suite Means</h2>
+      <p>A regression suite is just a repeatable safety check.</p>
+      <p>In normal language:</p>
+      <ul>
+        <li>we make changes</li>
+        <li>we run the same checks again</li>
+        <li>if something that used to work has broken, we catch it early</li>
+      </ul>
+      <p>For Strudel Studio, the important idea is not "lots of fancy tests." It is "a small set of reliable checks we can rerun whenever we change the tool."</p>
+    </section>
+
+    <section class="check-section">
+      <h2>What Is Automated Now</h2>
+      <p>Run this from the repo root:</p>
+      <p><code>scripts\run-release-smoke.cmd</code></p>
+      <p>That smoke suite checks:</p>
+      <ul>
+        <li>the app loads locally</li>
+        <li>the PWA shell files respond</li>
+        <li>the service worker registers</li>
+        <li><code>Simple View</code> and <code>Advanced View</code> switch correctly</li>
+        <li><code>Audio Check</code> and <code>Play</code> drive the diagnostics</li>
+        <li>arrangement editing can add a section</li>
+        <li>importing a sample banks it into the project clip vault</li>
+        <li>Pattern Rack capture still works</li>
+        <li>a banked clip can be loaded into another lane</li>
+        <li>snapshot save still works</li>
+        <li>full project export and import still work</li>
+      </ul>
+    </section>
+
+    <section class="check-section">
+      <h2>What Still Needs A Human Check</h2>
+      <ol>
+        <li>
+          <strong>Real audio output</strong>
+          <ul>
+            <li>Open the app in your normal browser profile.</li>
+            <li>Press <code>Audio Check</code>.</li>
+            <li>Press <code>Play</code>.</li>
+            <li>Confirm you can actually hear sound through your speakers or headphones.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>PWA install</strong>
+          <ul>
+            <li>Open the app in a normal browser window.</li>
+            <li>Use the browser's install option or the app install button if it appears.</li>
+            <li>Confirm the installed app opens and looks normal.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Local AI, if you want it in scope</strong>
+          <ul>
+            <li>Start your local model runtime.</li>
+            <li>Open the Local AI panel.</li>
+            <li>Press <code>Detect Local AI</code> or <code>Test Connection</code>.</li>
+            <li>Send one simple prompt and confirm you get a reply.</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <section class="check-section">
+      <h2>What I Mean By The Remaining Notes</h2>
+      <ul>
+        <li><strong>"No automated regression suite"</strong>: this used to mean we had no reusable safety check at all. It now means we have a lightweight smoke suite, but not a huge full test system.</li>
+        <li><strong>"Real speaker or headphone validation still required"</strong>: a machine can see buttons and meter movement. It cannot honestly tell us whether you personally heard sound on your actual setup.</li>
+        <li><strong>"Normal-profile PWA install check still required"</strong>: automation can confirm the manifest and service worker. It cannot fully replace a normal "install this app and open it" check.</li>
+        <li><strong>"Local AI depends on a local runtime"</strong>: the AI panel is optional. It works only if you have a compatible local model server running.</li>
+        <li><strong>"Draft autosave vs snapshots/export"</strong>: draft autosave remembers the project state. If imported audio really matters, snapshots and exported project packages are the safer backup path.</li>
+      </ul>
+    </section>
+
+    <section class="check-section">
+      <h2>Simple Go / No-Go Pass</h2>
+      <div class="go-pass">
+        <ol>
+          <li>Run <code>scripts\run-release-smoke.cmd</code>.</li>
+          <li>Open the in-app <code>Release Readiness</code> panel and copy the review brief if you want a reviewer handoff summary.</li>
+          <li>Manually confirm you can hear sound.</li>
+          <li>Manually confirm the app installs normally as a PWA.</li>
+          <li>Optionally confirm local AI if you want that included in review.</li>
+        </ol>
+        <p>If those pass, we are in strong shape for review.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
