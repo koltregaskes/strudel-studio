@@ -1,8 +1,9 @@
-const CACHE_NAME = 'strudel-studio-v3-20260409';
+const CACHE_NAME = 'strudel-studio-v4-20261025';
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
+  './step-pattern.js',
   './app.js',
   './manifest.webmanifest',
   './icon.svg',
