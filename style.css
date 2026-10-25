@@ -2280,16 +2280,25 @@ body {
   min-height: 0;
   gap: var(--space-12);
   grid-template-columns: minmax(290px, 1.02fr) minmax(430px, 1.28fr) minmax(310px, 0.95fr);
-  grid-template-rows: minmax(0, 1fr) minmax(250px, 33vh);
+  grid-template-rows: minmax(380px, 56vh) minmax(260px, 34vh);
 }
 
 .console-dock {
-  min-height: 0;
+  min-height: 280px;
   overflow: auto;
   display: grid;
   gap: var(--space-12);
   align-content: start;
+  align-items: start;
+  grid-auto-rows: max-content;
   padding-right: var(--space-4);
+}
+
+.console-dock > .card,
+.console-drawer__viewport > .card,
+.advanced-shell__viewport > .card {
+  height: auto;
+  min-height: min-content;
 }
 
 .console-drawer {
@@ -2300,8 +2309,9 @@ body {
 .advanced-shell .card__body {
   display: grid;
   gap: var(--space-12);
-  grid-template-rows: auto minmax(0, 1fr);
-  height: 100%;
+  grid-template-rows: auto minmax(240px, 1fr);
+  height: auto;
+  min-height: 0;
 }
 
 .console-drawer__header,
@@ -2322,11 +2332,13 @@ body {
 
 .console-drawer__viewport,
 .advanced-shell__viewport {
-  min-height: 0;
+  min-height: 240px;
   overflow: auto;
   display: grid;
   gap: var(--space-12);
   align-content: start;
+  align-items: start;
+  grid-auto-rows: max-content;
   padding-right: var(--space-4);
 }
 
@@ -2438,24 +2450,24 @@ body.arrangement-resizing * {
 }
 
 body.shell-ready {
-  overflow: hidden;
+  overflow: auto;
 }
 
 .app-container[data-shell-ready="true"] {
   width: 100%;
   max-width: min(100vw, 2560px);
   min-height: 100dvh;
-  height: 100dvh;
+  height: auto;
   margin: 0 auto;
   padding: clamp(10px, 1.1vw, 18px);
   gap: clamp(10px, 0.9vw, 16px);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  align-content: stretch;
+  grid-template-rows: auto auto auto;
+  align-content: start;
 }
 
 .app-container[data-shell-ready="true"] .surface-shells {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
   min-height: 0;
 }
 
@@ -2562,17 +2574,13 @@ body.shell-ready {
 }
 
 @media (max-width: 1680px) {
-  .console-summary-strip {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .simple-shell {
     grid-template-columns: minmax(280px, 0.96fr) minmax(0, 1.22fr);
     grid-template-areas:
       "left center"
       "right center"
       "drawer drawer";
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) minmax(250px, 34vh);
+    grid-template-rows: minmax(320px, 42vh) minmax(320px, 42vh) minmax(260px, 36vh);
   }
 
   .console-dock--left {
@@ -2613,13 +2621,17 @@ body.shell-ready {
   }
 
   .simple-shell {
-    grid-template-rows: auto auto auto auto;
+    grid-template-areas: none;
+    grid-template-rows: none;
+    grid-auto-rows: auto;
   }
 
   .console-dock,
   .console-drawer__viewport,
   .advanced-shell__viewport {
     overflow: visible;
+    max-height: none;
+    min-height: 0;
     padding-right: 0;
   }
 
