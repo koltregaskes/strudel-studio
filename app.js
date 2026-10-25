@@ -2036,14 +2036,47 @@ arrange(
     }
 
     parseVocalSteps(value) {
-        return Array.from(
-            new Set(
-                value
-                    .split(',')
-                    .map((part) => parseInt(part.trim(), 10))
-                    .filter((step) => Number.isInteger(step) && step >= 1 && step <= 16)
-            )
-        ).sort((left, right) => left - right);
+        return globalThis.strudelStepPattern.parseStepList(value);
+    }
+
+    rejectedStepTokens(value) {
+        return globalThis.strudelStepPattern.rejectedStepTokens(value);
+    }
+
+    applyLaneStepInput(laneId, input) {
+        const parsed = this.parseVocalSteps(input.value);
+        const rejected = this.rejectedStepTokens(input.value);
+        let steps = parsed;
+
+        if (laneId === 'vocal' && !steps.length) {
+            steps = [8, 16];
+            this.showNotification('Vocal steps need at least one step from 1 to 16. Restored 8, 16.', 'warning');
+        } else if (rejected.length) {
+            const preview = rejected.slice(0, 4).join(', ');
+            const extra = rejected.length > 4 ? ` +${rejected.length - 4} more` : '';
+            this.showNotification(`Ignored step values outside 1–16: ${preview}${extra}`, 'warning');
+        }
+
+        this.sequenceConfig[`${laneId}Steps`] = steps;
+        input.value = steps.join(',');
+
+        if (laneId === 'vocal') {
+            this.renderVocalStepGrid();
+            this.updateSampleStatus();
+        } else if (laneId === 'fx') {
+            this.renderFxStepGrid();
+            this.updateFxStatus();
+        } else if (laneId === 'texture') {
+            this.renderTextureStepGrid();
+            this.updateTextureStatus();
+        } else if (laneId === 'perc') {
+            this.renderPercStepGrid();
+            this.updatePercStatus();
+        }
+
+        this.markSceneCustom();
+        this.syncDefaultCodeFromControls();
+        this.persistProject();
     }
 
     formatStepSummary(steps) {
@@ -5857,47 +5890,19 @@ ${prompt}`;
         });
 
         this.dom.vocalStepInput.addEventListener('change', (event) => {
-            const steps = this.parseVocalSteps(event.target.value);
-            this.sequenceConfig.vocalSteps = steps.length ? steps : [8, 16];
-            event.target.value = this.sequenceConfig.vocalSteps.join(',');
-            this.renderVocalStepGrid();
-            this.updateSampleStatus();
-            this.markSceneCustom();
-            this.syncDefaultCodeFromControls();
-            this.persistProject();
+            this.applyLaneStepInput('vocal', event.target);
         });
 
         this.dom.fxStepInput.addEventListener('change', (event) => {
-            const steps = this.parseVocalSteps(event.target.value);
-            this.sequenceConfig.fxSteps = steps;
-            event.target.value = this.sequenceConfig.fxSteps.join(',');
-            this.renderFxStepGrid();
-            this.updateFxStatus();
-            this.markSceneCustom();
-            this.syncDefaultCodeFromControls();
-            this.persistProject();
+            this.applyLaneStepInput('fx', event.target);
         });
 
         this.dom.textureStepInput.addEventListener('change', (event) => {
-            const steps = this.parseVocalSteps(event.target.value);
-            this.sequenceConfig.textureSteps = steps;
-            event.target.value = this.sequenceConfig.textureSteps.join(',');
-            this.renderTextureStepGrid();
-            this.updateTextureStatus();
-            this.markSceneCustom();
-            this.syncDefaultCodeFromControls();
-            this.persistProject();
+            this.applyLaneStepInput('texture', event.target);
         });
 
         this.dom.percStepInput.addEventListener('change', (event) => {
-            const steps = this.parseVocalSteps(event.target.value);
-            this.sequenceConfig.percSteps = steps;
-            event.target.value = this.sequenceConfig.percSteps.join(',');
-            this.renderPercStepGrid();
-            this.updatePercStatus();
-            this.markSceneCustom();
-            this.syncDefaultCodeFromControls();
-            this.persistProject();
+            this.applyLaneStepInput('perc', event.target);
         });
 
         [
